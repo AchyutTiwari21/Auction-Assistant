@@ -2,7 +2,7 @@ export class Service{
 
     async getAuctions() {
         try {
-            const response = await fetch("https://auction-api-n9mt.onrender.com/auctions", {
+            const response = await fetch("http://localhost:5000/auctions", {
                 method: 'GET',
                 credentials: 'include'
             });

@@ -16,7 +16,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-// import { mockAuctions, mockBids } from '@/data/mockData';
 import { format } from 'date-fns';
 import { Eye, Clock, Users } from 'lucide-react';
 import type { Auction } from '@/types';
@@ -50,26 +49,6 @@ export function Auctions() {
     return <Badge variant="secondary">Completed</Badge>;
   }
 
-
-  // const getStatusBadge = (status: string) => {
-  //   switch (status) {
-  //     case 'active':
-  //       return <Badge variant="default">Active</Badge>;
-  //     case 'completed':
-  //       return <Badge variant="secondary">Completed</Badge>;
-  //     case 'upcoming':
-  //       return <Badge variant="outline">Upcoming</Badge>;
-  //     default:
-  //       return <Badge variant="outline">{status}</Badge>;
-  //   }
-  // };
-
-  // const getAuctionBids = (auctionId: string) => {
-  //   return mockBids
-  //     .filter(bid => bid.auctionId === auctionId)Details
-  //     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  // };
-
   return (
     <div className="space-y-6">
       <div>
@@ -102,14 +81,14 @@ export function Auctions() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={auction.product.imageUrl || '/placeholder.png'}
-                        alt={auction.product.name}
+                        src={auction?.product?.imageUrl || '/placeholder.png'}
+                        alt={auction?.product?.name || 'Unknown Product'}
                         className="w-12 h-12 object-cover rounded"
                       />
                       <div>
-                        <p className="font-medium">{auction.product.name}</p>
+                        <p className="font-medium">{auction?.product?.name || 'Unknown Product'}</p>
                         <p className="text-sm text-muted-foreground truncate max-w-xs">
-                          {auction.product.description}
+                          {auction?.product?.description || 'No description available'}
                         </p>
                       </div>
                     </div>
@@ -118,7 +97,7 @@ export function Auctions() {
                   <TableCell>{format(auction.startTime, 'MMM dd, yyyy')}</TableCell>
                   <TableCell>{format(auction.endTime, 'MMM dd, yyyy')}</TableCell>
                   <TableCell className="font-medium">
-                    ${auction.currentBid.amount.toLocaleString()}
+                    ${auction?.currentBid?.amount.toLocaleString() || 'No bids yet'}
                   </TableCell>
                   <TableCell>
                     <Button
@@ -143,15 +122,15 @@ export function Auctions() {
           {selectedAuction && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-xl">{selectedAuction.product.name}</DialogTitle>
+                <DialogTitle className="text-xl">{selectedAuction?.product?.name}</DialogTitle>
               </DialogHeader>
               
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Auction Details */}
                 <div className="space-y-4">
                   <img
-                    src={selectedAuction.product.imageUrl || '/placeholder.png'}
-                    alt={selectedAuction.product.name}
+                    src={selectedAuction?.product?.imageUrl || '/placeholder.png'}
+                    alt={selectedAuction?.product?.name || 'Unknown Product'}
                     className="w-full h-64 object-cover rounded-lg"
                   />
                   
@@ -164,7 +143,7 @@ export function Auctions() {
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Current Bid:</span>
                       <span className="text-lg font-bold text-green-600">
-                        ${selectedAuction.currentBid.amount.toLocaleString()}
+                        ${selectedAuction?.currentBid?.amount.toLocaleString() || 'No bids yet'}
                       </span>
                     </div>    
 
@@ -175,7 +154,7 @@ export function Auctions() {
                       </div>
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-1" />
-                        {selectedAuction.bids.length} bids
+                        {selectedAuction?.bids?.length} bids
                       </div>
                     </div>
                   </div>
@@ -183,7 +162,7 @@ export function Auctions() {
                   <div>
                     <h4 className="font-medium mb-2">Description</h4>
                     <p className="text-sm text-muted-foreground">
-                      {selectedAuction.product.description}
+                      {selectedAuction?.product?.description || 'No description available'}
                     </p>
                   </div>
                 </div>
@@ -192,7 +171,7 @@ export function Auctions() {
                 <div>
                   <h4 className="font-medium mb-4">Bidding History</h4>
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {selectedAuction.bids.map((bid) => (
+                    {selectedAuction?.bids?.map((bid) => (
                       <div key={bid.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <img
@@ -201,19 +180,19 @@ export function Auctions() {
                             className="w-8 h-8 rounded-full"
                           />
                           <div>
-                            <p className="text-sm font-medium">{bid.user.name}</p>
+                            <p className="text-sm font-medium">{bid?.user?.name}</p>
                             <p className="text-xs text-muted-foreground">
                               {format(bid.createdAt, 'MMM dd, HH:mm')}
                             </p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="text-sm font-bold">${bid.amount.toLocaleString()}</p>
+                          <p className="text-sm font-bold">${bid?.amount.toLocaleString()}</p>
                         </div>
                       </div>
                     ))}
 
-                    {selectedAuction.bids.length === 0 && (
+                    {selectedAuction?.bids?.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
                         No bids yet
                       </div>
