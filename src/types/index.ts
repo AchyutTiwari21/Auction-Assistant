@@ -40,15 +40,40 @@ export interface Auction {
   }>;
 }
 
+export interface AuctionDetails {
+  id: string;
+  startTime: string;
+  endTime: string;
+  product: {
+    name: string | null;
+    imageUrl: string | null;
+  };
+  currentBid: {
+    amount: number;
+  }
+};
+
 export interface Bid {
   id: string;
-  auctionId: string;
-  userId: string;
   amount: number;
-  timestamp: Date;
-  user: User;
-  auction: Auction;
+  userId: string;
+  auctionId: string;
+  createdAt: string; // ISO string format
+  user: {
+    id: string;
+    name: string | null;
+    phone: string;
+    email: string | null;
+    picture: string | null;
+  };
+  product: {
+    name: string | null;
+    imageUrl: string | null;
+  };
+  auction: AuctionDetails;
 }
+
+
 
 export interface CallLog {
   id: string;

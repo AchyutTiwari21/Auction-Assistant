@@ -11,13 +11,45 @@ import { Badge } from '@/components/ui/badge';
 import { mockBids } from '@/data/mockData';
 import { format } from 'date-fns';
 import { DollarSign, TrendingUp, Clock } from 'lucide-react';
+import service from '@/backend-api/configuration';
+import { useEffect, useState } from 'react';
+import type { Bid, AuctionDetails } from '@/types';
 
 export function Bids() {
-  const sortedBids = mockBids.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  const totalBidValue = mockBids.reduce((sum, bid) => sum + bid.amount, 0);
-  const averageBid = totalBidValue / mockBids.length;
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  return (
+  useEffect(() => {
+    const fetchBids = async () => {
+      try {
+        const allBids = await service.getAllBids();
+        setBids(allBids);
+      } catch (error) {
+        console.error('Error fetching bids:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBids();
+  }, []);
+
+  const totalBidValue = bids.reduce((sum, bid) => sum + bid.amount, 0);
+  const averageBid = totalBidValue / bids.length;
+
+  function getStatusBadge(auction: AuctionDetails) {
+    const now = new Date();
+    const startTime = new Date(auction.startTime);
+    const endTime = new Date(auction.endTime);
+
+    if (now < startTime) return <Badge variant="outline">Upcoming</Badge>;
+    if (now >= startTime && now <= endTime) return <Badge variant="default">Active</Badge>;
+    return <Badge variant="secondary">Completed</Badge>;
+  }
+
+  return loading ? (
+    <div>Loading...</div>
+  ) : (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Bids</h2>
@@ -85,52 +117,50 @@ export function Bids() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedBids.map((bid) => (
+              {bids.map((bid) => (
                 <TableRow key={bid.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={bid.user.avatar}
-                        alt={bid.user.name}
+                        src={bid?.user?.picture || '/placeholder.png'}
+                        alt={bid?.user?.name || 'User Avatar'}
                         className="w-8 h-8 rounded-full"
                       />
                       <div>
-                        <p className="font-medium">{bid.user.name}</p>
-                        <p className="text-sm text-muted-foreground">{bid.user.email}</p>
+                        <p className="font-medium">{bid?.user?.name}</p>
+                        <p className="text-sm text-muted-foreground">{bid?.user?.email}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={bid.auction.image}
-                        alt={bid.auction.title}
+                        src={bid?.auction?.product?.imageUrl || '/placeholder.png'}
+                        alt={bid?.auction?.product?.name || 'Auction Product'}
                         className="w-10 h-10 object-cover rounded"
                       />
                       <div>
-                        <p className="font-medium">{bid.auction.title}</p>
-                        <Badge variant="outline" className="text-xs">
-                          {bid.auction.status}
-                        </Badge>
+                        <p className="font-medium">{bid?.auction?.product?.name || 'Unknown Product'}</p>
+                        {getStatusBadge(bid?.auction)}
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-bold text-green-600">
-                    ${bid.amount.toLocaleString()}
+                    ${bid?.amount.toLocaleString()}
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="text-sm">{format(bid.timestamp, 'MMM dd, yyyy')}</p>
+                      <p className="text-sm">{format(bid?.createdAt, 'MMM dd, yyyy')}</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(bid.timestamp, 'HH:mm:ss')}
+                        {format(bid?.createdAt, 'HH:mm:ss')}
                       </p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={bid.amount === bid.auction.currentBid ? 'default' : 'secondary'}
+                      variant={bid?.amount === bid?.auction?.currentBid?.amount ? 'default' : 'secondary'}
                     >
-                      {bid.amount === bid.auction.currentBid ? 'Winning' : 'Outbid'}
+                      {bid?.amount === bid?.auction?.currentBid?.amount ? 'Winning' : 'Outbid'}
                     </Badge>
                   </TableCell>
                 </TableRow>

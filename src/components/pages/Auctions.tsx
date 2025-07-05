@@ -24,6 +24,7 @@ import service from '@/backend-api/configuration';
 export function Auctions() {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
   const [auctions, setAuctions] = useState<Auction[] | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Fetch auctions from the backend API
@@ -33,6 +34,8 @@ export function Auctions() {
         setAuctions(response);
       } catch (error) {
         console.error('Error fetching auctions:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -49,7 +52,9 @@ export function Auctions() {
     return <Badge variant="secondary">Completed</Badge>;
   }
 
-  return (
+  return loading ? (
+    <div>Loading...</div>
+  ) : (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Auctions</h2>

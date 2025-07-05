@@ -19,6 +19,26 @@ export class Service{
             throw error;
         }
     }
+
+    async getAllBids() {
+        try {
+            const response = await fetch("http://localhost:5000/auctions/allBids", {
+                method: 'GET',
+                credentials: 'include'
+            });
+    
+            const data = await response.json();
+    
+            if(!response.ok) {
+                throw new Error(data.error || 'Error while fetching bids.');
+            } else {
+                return data;
+            }
+        } catch (error) {
+            console.error('Error fetching bids:', error);
+            throw error;
+        }
+    }
 }
 
 
