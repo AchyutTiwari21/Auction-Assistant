@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,32 +16,59 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { mockAuctions, mockBids } from '@/data/mockData';
+// import { mockAuctions, mockBids } from '@/data/mockData';
 import { format } from 'date-fns';
 import { Eye, Clock, Users } from 'lucide-react';
 import type { Auction } from '@/types';
+import service from '@/backend-api/configuration';
 
 export function Auctions() {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
+  const [auctions, setAuctions] = useState<Auction[] | null>(null);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'active':
-        return <Badge variant="default">Active</Badge>;
-      case 'completed':
-        return <Badge variant="secondary">Completed</Badge>;
-      case 'upcoming':
-        return <Badge variant="outline">Upcoming</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
+  useEffect(() => {
+    // Fetch auctions from the backend API
+    const fetchAuctions = async () => {
+      try {
+        const response = await service.getAuctions();
+        setAuctions(response);
+      } catch (error) {
+        console.error('Error fetching auctions:', error);
+      }
+    };
 
-  const getAuctionBids = (auctionId: string) => {
-    return mockBids
-      .filter(bid => bid.auctionId === auctionId)
-      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  };
+    fetchAuctions();
+  }, []);
+
+  function getStatusBadge(auction: Auction) {
+    const now = new Date();
+    const startTime = new Date(auction.startTime);
+    const endTime = new Date(auction.endTime);
+
+    if (now < startTime) return <Badge variant="outline">Upcoming</Badge>;
+    if (now >= startTime && now <= endTime) return <Badge variant="default">Active</Badge>;
+    return <Badge variant="secondary">Completed</Badge>;
+  }
+
+
+  // const getStatusBadge = (status: string) => {
+  //   switch (status) {
+  //     case 'active':
+  //       return <Badge variant="default">Active</Badge>;
+  //     case 'completed':
+  //       return <Badge variant="secondary">Completed</Badge>;
+  //     case 'upcoming':
+  //       return <Badge variant="outline">Upcoming</Badge>;
+  //     default:
+  //       return <Badge variant="outline">{status}</Badge>;
+  //   }
+  // };
+
+  // const getAuctionBids = (auctionId: string) => {
+  //   return mockBids
+  //     .filter(bid => bid.auctionId === auctionId)Details
+  //     .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  // };
 
   return (
     <div className="space-y-6">
@@ -70,30 +97,29 @@ export function Auctions() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockAuctions.map((auction) => (
+              {auctions?.map((auction) => (
                 <TableRow key={auction.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={auction.image}
-                        alt={auction.title}
+                        src={auction.product.imageUrl || '/placeholder.png'}
+                        alt={auction.product.name}
                         className="w-12 h-12 object-cover rounded"
                       />
                       <div>
-                        <p className="font-medium">{auction.title}</p>
+                        <p className="font-medium">{auction.product.name}</p>
                         <p className="text-sm text-muted-foreground truncate max-w-xs">
-                          {auction.description}
+                          {auction.product.description}
                         </p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{getStatusBadge(auction.status)}</TableCell>
-                  <TableCell>{format(auction.startDate, 'MMM dd, yyyy')}</TableCell>
-                  <TableCell>{format(auction.endDate, 'MMM dd, yyyy')}</TableCell>
+                  <TableCell>{getStatusBadge(auction)}</TableCell>
+                  <TableCell>{format(auction.startTime, 'MMM dd, yyyy')}</TableCell>
+                  <TableCell>{format(auction.endTime, 'MMM dd, yyyy')}</TableCell>
                   <TableCell className="font-medium">
-                    ${auction.currentBid.toLocaleString()}
+                    ${auction.currentBid.amount.toLocaleString()}
                   </TableCell>
-                  <TableCell>{auction.bidsCount}</TableCell>
                   <TableCell>
                     <Button
                       variant="ghost"
@@ -117,44 +143,39 @@ export function Auctions() {
           {selectedAuction && (
             <>
               <DialogHeader>
-                <DialogTitle className="text-xl">{selectedAuction.title}</DialogTitle>
+                <DialogTitle className="text-xl">{selectedAuction.product.name}</DialogTitle>
               </DialogHeader>
               
               <div className="grid gap-6 md:grid-cols-2">
                 {/* Auction Details */}
                 <div className="space-y-4">
                   <img
-                    src={selectedAuction.image}
-                    alt={selectedAuction.title}
+                    src={selectedAuction.product.imageUrl || '/placeholder.png'}
+                    alt={selectedAuction.product.name}
                     className="w-full h-64 object-cover rounded-lg"
                   />
                   
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Status:</span>
-                      {getStatusBadge(selectedAuction.status)}
+                      {getStatusBadge(selectedAuction)}
                     </div>
                     
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Current Bid:</span>
                       <span className="text-lg font-bold text-green-600">
-                        ${selectedAuction.currentBid.toLocaleString()}
+                        ${selectedAuction.currentBid.amount.toLocaleString()}
                       </span>
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Minimum Bid:</span>
-                      <span>${selectedAuction.minBid.toLocaleString()}</span>
-                    </div>
-                    
+                    </div>    
+
                     <div className="flex items-center space-x-4 text-sm text-muted-foreground">
                       <div className="flex items-center">
                         <Clock className="h-4 w-4 mr-1" />
-                        Ends {format(selectedAuction.endDate, 'MMM dd, yyyy HH:mm')}
+                        Ends {format(selectedAuction.endTime, 'MMM dd, yyyy HH:mm')}
                       </div>
                       <div className="flex items-center">
                         <Users className="h-4 w-4 mr-1" />
-                        {selectedAuction.bidsCount} bids
+                        {selectedAuction.bids.length} bids
                       </div>
                     </div>
                   </div>
@@ -162,7 +183,7 @@ export function Auctions() {
                   <div>
                     <h4 className="font-medium mb-2">Description</h4>
                     <p className="text-sm text-muted-foreground">
-                      {selectedAuction.description}
+                      {selectedAuction.product.description}
                     </p>
                   </div>
                 </div>
@@ -171,18 +192,18 @@ export function Auctions() {
                 <div>
                   <h4 className="font-medium mb-4">Bidding History</h4>
                   <div className="space-y-3 max-h-96 overflow-y-auto">
-                    {getAuctionBids(selectedAuction.id).map((bid) => (
+                    {selectedAuction.bids.map((bid) => (
                       <div key={bid.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <img
-                            src={bid.user.avatar}
-                            alt={bid.user.name}
+                            src={bid.user.picture || '/placeholder.png'}
+                            alt={bid.user.name || 'Unknown User'}
                             className="w-8 h-8 rounded-full"
                           />
                           <div>
                             <p className="text-sm font-medium">{bid.user.name}</p>
                             <p className="text-xs text-muted-foreground">
-                              {format(bid.timestamp, 'MMM dd, HH:mm')}
+                              {format(bid.createdAt, 'MMM dd, HH:mm')}
                             </p>
                           </div>
                         </div>
@@ -191,8 +212,8 @@ export function Auctions() {
                         </div>
                       </div>
                     ))}
-                    
-                    {getAuctionBids(selectedAuction.id).length === 0 && (
+
+                    {selectedAuction.bids.length === 0 && (
                       <div className="text-center py-8 text-muted-foreground">
                         No bids yet
                       </div>

@@ -10,15 +10,34 @@ export interface User {
 
 export interface Auction {
   id: string;
-  title: string;
-  description: string;
-  startDate: Date;
-  endDate: Date;
-  currentBid: number;
-  minBid: number;
-  status: 'active' | 'completed' | 'upcoming';
-  image?: string;
-  bidsCount: number;
+  productId: string;
+  startTime: string;
+  endTime: string;
+  currentBidId: string;
+  createdAt: string;
+  updatedAt: string;
+  product: {
+    name: string;
+    description: string;
+    imageUrl: string | null;
+  };
+  currentBid: {
+    id: string;
+    amount: number;
+    userId: string;
+    auctionId: string;
+    createdAt: string;
+  };
+  bids: Array<{
+    id: string;
+    amount: number;
+    createdAt: string;
+    user: {
+      id: string;
+      name: string | null;
+      picture: string | null;
+    };
+  }>;
 }
 
 export interface Bid {
