@@ -39,6 +39,25 @@ export class Service{
             throw error;
         }
     }
+
+    async getCallLogs() {
+        try {
+            const response = await fetch("http://localhost:5000/calls/callLogs", {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            if(!response.ok) {
+                throw new Error(data.error || 'Error while fetching call logs.');
+            } else {
+                return data;
+            }
+        } catch (error) {
+            console.error('Error fetching call logs:', error);
+            throw error;
+        }
+    }
 }
 
 

@@ -8,19 +8,40 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { mockCallLogs } from '@/data/mockData';
 import { format } from 'date-fns';
 import { Phone, PhoneCall, PhoneMissed, Clock } from 'lucide-react';
+import service from '@/backend-api/configuration';
+import { useEffect, useState } from 'react';
+import { CallLog } from '@/types';
 
 export function CallLogs() {
-  const totalCalls = mockCallLogs.length;
-  const answeredCalls = mockCallLogs.filter(log => log.status === 'answered').length;
-  const missedCalls = mockCallLogs.filter(log => log.status === 'missed').length;
-  const ongoingCalls = mockCallLogs.filter(log => log.status === 'ongoing').length;
+
+  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCallLogs = async () => {
+      try {
+        const response = await service.getCallLogs();
+        setCallLogs(response);
+      } catch (error) {
+        console.error('Error fetching call logs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCallLogs();
+  }, []);
+
+  const totalCalls = callLogs.length;
+  const answeredCalls = callLogs.filter(log => log.status === 'completed').length;
+  const missedCalls = callLogs.filter(log => log.status === 'missed').length;
+  const ongoingCalls = callLogs.filter(log => log.status === 'ongoing').length;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'answered':
+      case 'completed':
         return <Badge variant="default" className="bg-green-500">Answered</Badge>;
       case 'missed':
         return <Badge variant="destructive">Missed</Badge>;
@@ -35,7 +56,7 @@ export function CallLogs() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'answered':
+      case 'completed':
         return <PhoneCall className="h-4 w-4 text-green-500" />;
       case 'missed':
         return <PhoneMissed className="h-4 w-4 text-red-500" />;
@@ -48,7 +69,7 @@ export function CallLogs() {
     }
   };
 
-  return (
+  return loading ? (<div>Loading...</div>) : (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Call Logs</h2>
@@ -130,26 +151,26 @@ export function CallLogs() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockCallLogs.map((log) => (
+              {callLogs.map((log) => (
                 <TableRow key={log.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       {getStatusIcon(log.status)}
                       <div className="flex items-center space-x-2">
                         <img
-                          src={log.user.avatar}
-                          alt={log.user.name}
+                          src={log.user?.picture || '/default-avatar.png'}
+                          alt={log.user?.name || 'User Avatar'}
                           className="w-8 h-8 rounded-full"
                         />
                         <div>
-                          <p className="font-medium">{log.user.name}</p>
-                          <p className="text-sm text-muted-foreground">{log.user.email}</p>
+                          <p className="font-medium">{log.user?.name}</p>
+                          <p className="text-sm text-muted-foreground">{log.user?.email}</p>
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="font-mono">
-                    {log.phoneNumber}
+                    {log.phone}
                   </TableCell>
                   <TableCell>
                     <div>
@@ -167,13 +188,6 @@ export function CallLogs() {
                           {format(log.endedAt, 'HH:mm:ss')}
                         </p>
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {log.duration ? (
-                      <span className="font-medium">{log.duration}m</span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}

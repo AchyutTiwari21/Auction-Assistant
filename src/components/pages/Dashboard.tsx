@@ -1,14 +1,48 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { dashboardStats, mockAuctions, mockBids } from '@/data/mockData';
+import { dashboardStats } from '@/data/mockData';
 import { Users, Gavel, DollarSign, Phone, TrendingUp, Activity } from 'lucide-react';
 import { format } from 'date-fns';
+import service from '@/backend-api/configuration';
+import { useEffect, useState } from 'react';
+import { Bid, Auction } from '@/types';
 
 export function Dashboard() {
-  const recentBids = mockBids.slice(0, 5);
-  const activeAuctions = mockAuctions.filter(a => a.status === 'active');
 
-  return (
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Fetch dashboard data from the backend API
+    const fetchDashboardData = async () => {
+      try {
+        const response = await service.getAllBids();
+        setBids(response);
+
+        const auctionsResponse = await service.getAuctions();
+        setAuctions(auctionsResponse);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const recentBids = bids.slice(0, 5);
+
+  const activeAuctions = auctions.filter(a => {
+    const now = new Date();
+    const startTime = new Date(a.startTime);
+    const endTime = new Date(a.endTime);
+    return now >= startTime && now <= endTime;
+  });
+
+  return loading ? (
+    <div>Loading...</div>
+  ) : (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
@@ -86,17 +120,14 @@ export function Dashboard() {
               {activeAuctions.map((auction) => (
                 <div key={auction.id} className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{auction.title}</p>
+                    <p className="text-sm font-medium truncate">{auction?.product?.name}</p>
                     <p className="text-xs text-muted-foreground">
-                      Ends {format(auction.endDate, 'MMM dd, yyyy')}
+                      Ends {format(auction.endTime, 'MMM dd, yyyy')}
                     </p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">
                       ${auction.currentBid.toLocaleString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {auction.bidsCount} bids
                     </p>
                   </div>
                 </div>
@@ -141,13 +172,13 @@ export function Dashboard() {
                   </div>
                   <div>
                     <p className="text-sm font-medium">{bid.user.name}</p>
-                    <p className="text-xs text-muted-foreground">{bid.auction.title}</p>
+                    <p className="text-xs text-muted-foreground">{bid.auction.product.name}</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold">${bid.amount.toLocaleString()}</p>
                   <p className="text-xs text-muted-foreground">
-                    {format(bid.timestamp, 'MMM dd, HH:mm')}
+                    {format(bid.createdAt, 'MMM dd, HH:mm')}
                   </p>
                 </div>
               </div>

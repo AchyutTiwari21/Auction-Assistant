@@ -73,17 +73,21 @@ export interface Bid {
   auction: AuctionDetails;
 }
 
-
-
 export interface CallLog {
   id: string;
   userId: string;
-  user: User;
-  startedAt: Date;
-  endedAt?: Date;
-  duration?: number;
-  status: 'answered' | 'missed' | 'busy' | 'ongoing';
-  phoneNumber: string;
+  phone: string;
+  auctionId: string;
+  startedAt: string;   // ISO timestamp (you can convert to Date if needed)
+  endedAt: string;     // ISO timestamp
+  status: 'completed' | 'missed' | string; // add more literal types if known
+  createdAt: string;
+  user: {
+    id: string;
+    name: string | null;
+    picture: string | null;
+    email: string | null;
+  };
 }
 
 export interface DashboardStats {
