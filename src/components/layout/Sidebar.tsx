@@ -33,10 +33,11 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Mobile menu button */}
       <Button
         variant="ghost"
-        className="fixed top-4 left-4 z-50 md:hidden"
+        className="fixed top-4 right-4 z-50 md:hidden h-8 w-8 p-0"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
-        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {isMobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        <span className="sr-only">Toggle menu</span>
       </Button>
 
       {/* Mobile backdrop */}
