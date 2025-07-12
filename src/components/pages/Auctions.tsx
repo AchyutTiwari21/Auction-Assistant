@@ -26,8 +26,6 @@ export function Auctions() {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
 
   const auctions: Auction[] | null = useSelector((state: RootState) => state.auctions.auctions);
-
-  console.log("Auctions: ", auctions);
   
   function getStatusBadge(auction: Auction) {
     const now = new Date();
@@ -71,7 +69,7 @@ export function Auctions() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={auction?.product?.imageUrl || '/placeholder.png'}
+                        src={auction?.product?.imageUrl || '/placeholder.svg'}
                         alt={auction?.product?.name || 'Unknown Product'}
                         className="w-12 h-12 object-cover rounded"
                       />
@@ -119,7 +117,7 @@ export function Auctions() {
                 {/* Auction Details */}
                 <div className="space-y-4">
                   <img
-                    src={selectedAuction?.product?.imageUrl || '/placeholder.png'}
+                    src={selectedAuction?.product?.imageUrl || '/placeholder.svg'}
                     alt={selectedAuction?.product?.name || 'Unknown Product'}
                     className="w-full h-64 object-cover rounded-lg"
                   />
@@ -165,7 +163,7 @@ export function Auctions() {
                       <div key={bid.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center space-x-3">
                           <img
-                            src={bid.user.picture || '/placeholder.png'}
+                            src={bid.user.picture || '/placeholder.svg'}
                             alt={bid.user.name || 'Unknown User'}
                             className="w-8 h-8 rounded-full"
                           />

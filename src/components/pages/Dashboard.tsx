@@ -33,8 +33,7 @@ export function Dashboard() {
         }
 
         const auctionsResponse = await service.getAuctions();
-        if(auctionsResponse) {
-          console.log(auctionsResponse);    
+        if(auctionsResponse) {   
           dispatch(setAuctions(auctionsResponse));
         } else {
           throw new Error('No auctions found');

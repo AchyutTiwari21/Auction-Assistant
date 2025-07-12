@@ -141,7 +141,7 @@ export function CallLogs() {
                       {getStatusIcon(log.status)}
                       <div className="flex items-center space-x-2">
                         <img
-                          src={log.user?.picture || '/default-avatar.png'}
+                          src={log.user?.picture || '/placeholder.svg'}
                           alt={log.user?.name || 'User Avatar'}
                           className="w-8 h-8 rounded-full"
                         />

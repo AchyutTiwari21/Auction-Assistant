@@ -94,7 +94,7 @@ export function Users() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={user?.picture || '/default-avatar.png'}
+                        src={user?.picture || '/placeholder.svg'}
                         alt={user?.name || 'User Avatar'}
                         className="w-10 h-10 rounded-full"
                       />

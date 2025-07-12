@@ -103,7 +103,7 @@ export function Bids() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={bid?.user?.picture || '/placeholder.png'}
+                        src={bid?.user?.picture || '/placeholder.svg'}
                         alt={bid?.user?.name || 'User Avatar'}
                         className="w-8 h-8 rounded-full"
                       />
@@ -116,7 +116,7 @@ export function Bids() {
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={bid?.auction?.product?.imageUrl || '/placeholder.png'}
+                        src={bid?.auction?.product?.imageUrl || '/placeholder.svg'}
                         alt={bid?.auction?.product?.name || 'Auction Product'}
                         className="w-10 h-10 object-cover rounded"
                       />
