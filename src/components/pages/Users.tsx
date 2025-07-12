@@ -8,14 +8,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { mockUsers } from '@/data/mockData';
 import { format } from 'date-fns';
 import { Users as UsersIcon, UserCheck, Calendar } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
+import { UsersType } from '@/types';
 
 export function Users() {
-  const totalUsers = mockUsers.length;
-  const activeUsers = mockUsers.filter(user => user.totalBids > 0).length;
-  const averageBids = Math.round(mockUsers.reduce((sum, user) => sum + user.totalBids, 0) / totalUsers);
+  const users: UsersType[] | null = useSelector((state: RootState) => state.users.users);
+
+  const totalUsers = users.length;
+  const activeUsers = users.filter(user => user.bids.length > 0).length;
+  const averageBids = Math.round(users.reduce((sum, user) => sum + user.bids.length, 0) / totalUsers);
 
   return (
     <div className="space-y-6">
@@ -85,36 +89,36 @@ export function Users() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {mockUsers.map((user) => (
+              {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <img
-                        src={user.avatar}
-                        alt={user.name}
+                        src={user?.picture || '/default-avatar.png'}
+                        alt={user?.name || 'User Avatar'}
                         className="w-10 h-10 rounded-full"
                       />
                       <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <p className="font-medium">{user?.name}</p>
+                        <p className="text-sm text-muted-foreground">{user?.email}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div>
                       <p className="text-sm">{user.phone}</p>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
+                      <p className="text-xs text-muted-foreground">{user?.email}</p>
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
-                    {user.totalBids}
+                    {user.bids.length}
                   </TableCell>
                   <TableCell>
-                    {format(user.registeredAt, 'MMM dd, yyyy')}
+                    {format(user.createdAt, 'MMM dd, yyyy')}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={user.totalBids > 0 ? 'default' : 'secondary'}>
-                      {user.totalBids > 0 ? 'Active' : 'Inactive'}
+                    <Badge variant={user.bids.length > 0 ? 'default' : 'secondary'}>
+                      {user.bids.length > 0 ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
                 </TableRow>

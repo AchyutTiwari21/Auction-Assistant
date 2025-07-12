@@ -1,11 +1,14 @@
-export interface User {
+export interface UsersType {
   id: string;
-  name: string;
-  email: string;
+  name: string | null;
+  email: string | null;
   phone: string;
-  totalBids: number;
-  registeredAt: Date;
-  avatar?: string;
+  picture: string | null;
+  bids: Array<{
+    id: string;
+    amount: number;
+  }>;
+  createdAt: string; // ISO string format
 }
 
 export interface Auction {
@@ -53,7 +56,7 @@ export interface AuctionDetails {
   }
 };
 
-export interface Bid {
+export interface Bids {
   id: string;
   amount: number;
   userId: string;

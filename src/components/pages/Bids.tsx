@@ -8,31 +8,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { mockBids } from '@/data/mockData';
 import { format } from 'date-fns';
 import { DollarSign, TrendingUp, Clock } from 'lucide-react';
-import service from '@/backend-api/configuration';
-import { useEffect, useState } from 'react';
-import type { Bid, AuctionDetails } from '@/types';
+import type { Bids, AuctionDetails } from '@/types';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 export function Bids() {
-  const [bids, setBids] = useState<Bid[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchBids = async () => {
-      try {
-        const allBids = await service.getAllBids();
-        setBids(allBids);
-      } catch (error) {
-        console.error('Error fetching bids:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBids();
-  }, []);
+  const bids: Bids[] = useSelector((state: RootState) => state.bids.bids);
 
   const totalBidValue = bids.reduce((sum, bid) => sum + bid.amount, 0);
   const averageBid = totalBidValue / bids.length;
@@ -47,9 +30,7 @@ export function Bids() {
     return <Badge variant="secondary">Completed</Badge>;
   }
 
-  return loading ? (
-    <div>Loading...</div>
-  ) : (
+  return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Bids</h2>
@@ -92,7 +73,7 @@ export function Bids() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockBids.length}</div>
+            <div className="text-2xl font-bold">{bids.length}</div>
             <p className="text-xs text-muted-foreground">
               Total bids placed
             </p>

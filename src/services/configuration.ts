@@ -58,6 +58,25 @@ export class Service{
             throw error;
         }
     }
+
+    async getAllUsers() {
+        try {
+            const response = await fetch("http://localhost:5000/users/getAllUsers", {
+                method: 'GET',
+                credentials: 'include'
+            });
+            const data = await response.json();
+
+            if(!response.ok) {
+                throw new Error(data.error || 'Error while fetching users.');
+            } else {
+                return data;
+            }
+        } catch (error) {
+            console.error('Error fetching users:', error);
+            throw error;
+        }
+    }
 }
 
 

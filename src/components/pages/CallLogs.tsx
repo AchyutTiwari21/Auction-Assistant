@@ -10,29 +10,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Phone, PhoneCall, PhoneMissed, Clock } from 'lucide-react';
-import service from '@/backend-api/configuration';
-import { useEffect, useState } from 'react';
 import { CallLog } from '@/types';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/app/store';
 
 export function CallLogs() {
-
-  const [callLogs, setCallLogs] = useState<CallLog[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchCallLogs = async () => {
-      try {
-        const response = await service.getCallLogs();
-        setCallLogs(response);
-      } catch (error) {
-        console.error('Error fetching call logs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCallLogs();
-  }, []);
+  const callLogs: CallLog[] | null = useSelector((state: RootState) => state.callLogs.callLogs);
 
   const totalCalls = callLogs.length;
   const answeredCalls = callLogs.filter(log => log.status === 'completed').length;
@@ -69,7 +52,7 @@ export function CallLogs() {
     }
   };
 
-  return loading ? (<div>Loading...</div>) : (
+  return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Call Logs</h2>

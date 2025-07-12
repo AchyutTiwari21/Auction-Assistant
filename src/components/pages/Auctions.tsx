@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,29 +19,16 @@ import {
 import { format } from 'date-fns';
 import { Eye, Clock, Users } from 'lucide-react';
 import type { Auction } from '@/types';
-import service from '@/backend-api/configuration';
+import { useSelector } from 'react-redux';
+import type { RootState } from '@/app/store';
 
 export function Auctions() {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
-  const [auctions, setAuctions] = useState<Auction[] | null>(null);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Fetch auctions from the backend API
-    const fetchAuctions = async () => {
-      try {
-        const response = await service.getAuctions();
-        setAuctions(response);
-      } catch (error) {
-        console.error('Error fetching auctions:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const auctions: Auction[] | null = useSelector((state: RootState) => state.auctions.auctions);
 
-    fetchAuctions();
-  }, []);
-
+  console.log("Auctions: ", auctions);
+  
   function getStatusBadge(auction: Auction) {
     const now = new Date();
     const startTime = new Date(auction.startTime);
@@ -52,9 +39,7 @@ export function Auctions() {
     return <Badge variant="secondary">Completed</Badge>;
   }
 
-  return loading ? (
-    <div>Loading...</div>
-  ) : (
+  return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Auctions</h2>

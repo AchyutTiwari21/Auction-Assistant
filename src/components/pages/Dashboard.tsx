@@ -1,30 +1,63 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { dashboardStats } from '@/data/mockData';
-import { Users, Gavel, DollarSign, Phone, TrendingUp, Activity } from 'lucide-react';
+import { Users, Gavel, DollarSign, Phone, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
-import service from '@/backend-api/configuration';
+import { RootState } from '@/app/store';
+import { Bids, Auction, UsersType, CallLog } from '@/types';
+import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
-import { Bid, Auction } from '@/types';
+import service from '@/services/configuration';
+import { setAuctions, setBids, setCallLogs, setUsers } from '@/app/features';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
 export function Dashboard() {
+  const users: UsersType[] | null = useSelector((state: RootState) => state.users.users);
+  const auctions: Auction[] | null = useSelector((state: RootState) => state.auctions.auctions);
+  const bids: Bids[] | null = useSelector((state: RootState) => state.bids.bids);
+  const callLogs: CallLog[] | null = useSelector((state: RootState) => state.callLogs.callLogs);
 
-  const [bids, setBids] = useState<Bid[]>([]);
-  const [auctions, setAuctions] = useState<Auction[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const dispatch = useDispatch();
 
   useEffect(() => {
     // Fetch dashboard data from the backend API
     const fetchDashboardData = async () => {
+      NProgress.start();
       try {
-        const response = await service.getAllBids();
-        setBids(response);
+        const usersResponse = await service.getAllUsers();
+        if(usersResponse) {
+          dispatch(setUsers(usersResponse));
+        } else {
+          throw new Error('No users found!');
+        }
 
         const auctionsResponse = await service.getAuctions();
-        setAuctions(auctionsResponse);
+        if(auctionsResponse) {
+          console.log(auctionsResponse);    
+          dispatch(setAuctions(auctionsResponse));
+        } else {
+          throw new Error('No auctions found');
+        }
+
+        const bidResponse = await service.getAllBids();
+        if(bidResponse) {
+          dispatch(setBids(bidResponse));
+        } else {
+          throw new Error("No bids found");
+        }
+
+        const callLogs = await service.getCallLogs();
+        if(callLogs) {
+          dispatch(setCallLogs(callLogs));
+        } else {
+          throw new Error("No Call logs found!");
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
+        NProgress.done();
       }
     };
 
@@ -40,9 +73,11 @@ export function Dashboard() {
     return now >= startTime && now <= endTime;
   });
 
-  return loading ? (
-    <div>Loading...</div>
-  ) : (
+  if(loading) {
+    return null;
+  }
+
+  return (
     <div className="space-y-6">
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
@@ -59,10 +94,7 @@ export function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground">
-              +2 from last month
-            </p>
+            <div className="text-2xl font-bold">{users.length}</div>
           </CardContent>
         </Card>
 
@@ -72,10 +104,7 @@ export function Dashboard() {
             <Gavel className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.totalAuctions}</div>
-            <p className="text-xs text-muted-foreground">
-              {dashboardStats.activeAuctions} active
-            </p>
+            <div className="text-2xl font-bold">{auctions.length}</div>
           </CardContent>
         </Card>
 
@@ -85,10 +114,7 @@ export function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.totalBids}</div>
-            <p className="text-xs text-muted-foreground">
-              +12% from last week
-            </p>
+            <div className="text-2xl font-bold">{bids.length}</div>
           </CardContent>
         </Card>
 
@@ -98,10 +124,7 @@ export function Dashboard() {
             <Phone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{dashboardStats.totalCallLogs}</div>
-            <p className="text-xs text-muted-foreground">
-              3 ongoing calls
-            </p>
+            <div className="text-2xl font-bold">{callLogs.length}</div>
           </CardContent>
         </Card>
       </div>
@@ -127,7 +150,7 @@ export function Dashboard() {
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-bold">
-                      ${auction.currentBid.toLocaleString()}
+                      ${auction?.currentBid?.amount.toLocaleString()}
                     </p>
                   </div>
                 </div>
@@ -137,7 +160,7 @@ export function Dashboard() {
         </Card>
 
         {/* Recent Activity */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <Activity className="mr-2 h-5 w-5" />
@@ -154,7 +177,7 @@ export function Dashboard() {
               ))}
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
 
       {/* Recent Bids */}
