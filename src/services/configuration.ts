@@ -2,7 +2,7 @@ export class Service{
 
     async getAuctions() {
         try {
-            const response = await fetch("http://localhost:5000/auctions", {
+            const response = await fetch("https://auction-api-n9mt.onrender.com/auctions", {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -22,7 +22,7 @@ export class Service{
 
     async getAllBids() {
         try {
-            const response = await fetch("http://localhost:5000/auctions/allBids", {
+            const response = await fetch("https://auction-api-n9mt.onrender.com/auctions/allBids", {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -42,7 +42,7 @@ export class Service{
 
     async getCallLogs() {
         try {
-            const response = await fetch("http://localhost:5000/calls/callLogs", {
+            const response = await fetch("https://auction-api-n9mt.onrender.com/calls/callLogs", {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -61,7 +61,7 @@ export class Service{
 
     async getAllUsers() {
         try {
-            const response = await fetch("http://localhost:5000/users/getAllUsers", {
+            const response = await fetch("https://auction-api-n9mt.onrender.com/users/getAllUsers", {
                 method: 'GET',
                 credentials: 'include'
             });
