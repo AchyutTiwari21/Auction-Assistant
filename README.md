@@ -8,7 +8,7 @@ This is the **frontend** of the Auction Assist app, built with **React**, **Type
 
 ## 🚀 Live Demo
 
-🌐 [Visit Auction Assist]([https://auction-assistant.vercel.app])
+🌐 [Visit Auction Assist](https://auction-assistant.vercel.app/)
 
 ---
 
