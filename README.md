@@ -24,7 +24,7 @@ _Add a preview image in `public/preview.png` to show off the UI here._
 - ⚡ Vite
 - 🎨 Tailwind CSS
 - 🧱 ShadCN UI
-- 🔁 Axios for API requests
+- 🔁 Fetch for API requests
 - 🔧 Hosted on Vercel
 
 ---
