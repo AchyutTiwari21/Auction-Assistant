@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Gavel, Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 
 export function Header() {
@@ -10,7 +10,11 @@ export function Header() {
       <div className="flex items-center space-x-3">
         <h1 className="hidden md:block text-lg font-semibold">Auction Dashboard</h1>
         <div className="flex items-center space-x-2">
-          <Gavel className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+          <img 
+            src="/logo.png" 
+            alt="Auction Dashboard Logo" 
+            className="h-8 w-8 md:h-10 md:w-10 rounded-lg"
+          />
           <span className="md:hidden text-sm font-semibold">AuctionHub</span>
         </div>
       </div>
