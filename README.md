@@ -115,7 +115,7 @@ To enable the AI chatbot widget, add the following before `</body>` in `index.ht
 
 ## 🧩 Related Projects
 
-- 🔧 [Auction Assist Backend]([(https://github.com/AchyutTiwari21/Auction-API)](https://auction-api-n9mt.onrender.com)) – Express + Prisma + PostgreSQL
+- 🔧 [Auction Assist Backend](https://github.com/AchyutTiwari21/Auction-API) – Express + Prisma + PostgreSQL
 
 ---
 
