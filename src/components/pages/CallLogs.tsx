@@ -7,15 +7,44 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Phone, PhoneCall, PhoneMissed, Clock } from 'lucide-react';
 import { CallLog } from '@/types';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/app/store';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
+import service from '@/services/configuration';
+import { setCallLogs } from '@/app/features';
 
 export function CallLogs() {
   const callLogs: CallLog[] | null = useSelector((state: RootState) => state.callLogs.callLogs);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    NProgress.configure({showSpinner: false});
+    // Fetch dashboard data from the backend API
+    const fetchCallLogsData = async () => {
+      NProgress.start();
+      try {
+        const callLogs = await service.getCallLogs();
+        if(callLogs) {
+          dispatch(setCallLogs(callLogs));
+        } else {
+          throw new Error("No Call logs found!");
+        }
+      } catch (error) {
+        console.error('Error fetching call logs data:', error);
+      } finally {
+        NProgress.done();
+      }
+    };
+
+    fetchCallLogsData();
+  }, [dispatch]);
 
   const totalCalls = callLogs.length;
   const answeredCalls = callLogs.filter(log => log.status === 'completed').length;
@@ -122,14 +151,14 @@ export function CallLogs() {
           <CardTitle>Recent Call Logs</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="w-full overflow-x-auto">
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
                 <TableHead>Phone Number</TableHead>
                 <TableHead>Started At</TableHead>
-                <TableHead>Ended At</TableHead>
-                <TableHead>Duration</TableHead>
+                <TableHead className="hidden sm:table-cell">Ended At</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -143,11 +172,11 @@ export function CallLogs() {
                         <img
                           src={log.user?.picture || '/placeholder.svg'}
                           alt={log.user?.name || 'User Avatar'}
-                          className="w-8 h-8 rounded-full"
+                          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full"
                         />
                         <div>
-                          <p className="font-medium">{log.user?.name}</p>
-                          <p className="text-sm text-muted-foreground">{log.user?.email}</p>
+                          <p className="font-medium max-w-[100px] truncate sm:max-w-xs">{log.user?.name}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[100px] sm:max-w-xs">{log.user?.email}</p>
                         </div>
                       </div>
                     </div>
@@ -157,17 +186,17 @@ export function CallLogs() {
                   </TableCell>
                   <TableCell>
                     <div>
-                      <p className="text-sm">{format(log.startedAt, 'MMM dd, yyyy')}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs">{format(log.startedAt, 'MMM dd, yyyy')}</p>
+                      <p className="text-[10px] text-muted-foreground">
                         {format(log.startedAt, 'HH:mm:ss')}
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     {log.endedAt ? (
                       <div>
-                        <p className="text-sm">{format(log.endedAt, 'MMM dd, yyyy')}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs">{format(log.endedAt, 'MMM dd, yyyy')}</p>
+                        <p className="text-[10px] text-muted-foreground">
                           {format(log.endedAt, 'HH:mm:ss')}
                         </p>
                       </div>
@@ -182,6 +211,7 @@ export function CallLogs() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

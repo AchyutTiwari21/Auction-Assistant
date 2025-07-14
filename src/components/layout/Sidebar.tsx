@@ -91,7 +91,7 @@ export function Sidebar({ className }: SidebarProps) {
           {/* Footer */}
           <div className="border-t border-border p-4">
             <div className="text-xs text-muted-foreground">
-              © 2024 AuctionHub
+              © 2025 AuctionHub
             </div>
           </div>
         </div>

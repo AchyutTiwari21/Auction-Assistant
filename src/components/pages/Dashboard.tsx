@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { RootState } from '@/app/store';
 import { Bids, Auction, UsersType, CallLog } from '@/types';
 import { useSelector, useDispatch } from 'react-redux';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import service from '@/services/configuration';
 import { setAuctions, setBids, setCallLogs, setUsers } from '@/app/features';
 import NProgress from 'nprogress';
@@ -16,11 +16,10 @@ export function Dashboard() {
   const bids: Bids[] | null = useSelector((state: RootState) => state.bids.bids);
   const callLogs: CallLog[] | null = useSelector((state: RootState) => state.callLogs.callLogs);
 
-  const [loading, setLoading] = useState<boolean>(true);
-
   const dispatch = useDispatch();
 
   useEffect(() => {
+    NProgress.configure({showSpinner: false});
     // Fetch dashboard data from the backend API
     const fetchDashboardData = async () => {
       NProgress.start();
@@ -55,13 +54,12 @@ export function Dashboard() {
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
-        setLoading(false);
         NProgress.done();
       }
     };
 
     fetchDashboardData();
-  }, []);
+  }, [dispatch]);
 
   const recentBids = bids.slice(0, 5);
 
@@ -71,10 +69,6 @@ export function Dashboard() {
     const endTime = new Date(a.endTime);
     return now >= startTime && now <= endTime;
   });
-
-  if(loading) {
-    return null;
-  }
 
   return (
     <div className="space-y-6">
@@ -128,7 +122,9 @@ export function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className='grid md:grid-cols-2 gap-6'>
+
+      <div>
         {/* Active Auctions */}
         <Card>
           <CardHeader>
@@ -157,28 +153,9 @@ export function Dashboard() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Recent Activity */}
-        {/* <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Activity className="mr-2 h-5 w-5" />
-              Recent Activity
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {dashboardStats.recentActivity.map((activity, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
-                  <p className="text-sm text-muted-foreground">{activity}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card> */}
       </div>
 
+      <div>
       {/* Recent Bids */}
       <Card>
         <CardHeader>
@@ -208,6 +185,10 @@ export function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      </div>
+
+      </div>
+      
     </div>
   );
 }

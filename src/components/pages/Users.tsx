@@ -10,12 +10,40 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Users as UsersIcon, UserCheck, Calendar } from 'lucide-react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '@/app/store';
 import { UsersType } from '@/types';
+import { useEffect } from 'react';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
+import service from '@/services/configuration';
+import { setUsers } from '@/app/features';
 
 export function Users() {
   const users: UsersType[] | null = useSelector((state: RootState) => state.users.users);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    NProgress.configure({showSpinner: false});
+    // Fetch user data from the backend API
+    const fetchUserData = async () => {
+      NProgress.start();
+      try {
+        const usersResponse = await service.getAllUsers();
+        if(usersResponse) {
+          dispatch(setUsers(usersResponse));
+        } else {
+          throw new Error('No users found!');
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+      } finally {
+        NProgress.done();
+      }
+    };
+
+    fetchUserData();
+  }, [dispatch]);
 
   const totalUsers = users.length;
   const activeUsers = users.filter(user => user.bids.length > 0).length;
@@ -78,13 +106,14 @@ export function Users() {
           <CardTitle>All Users</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="w-full overflow-x-auto">
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead>Contact</TableHead>
+                <TableHead className="hidden sm:table-cell">Contact</TableHead>
                 <TableHead>Total Bids</TableHead>
-                <TableHead>Registered</TableHead>
+                <TableHead className="hidden md:table-cell">Registered</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -96,24 +125,24 @@ export function Users() {
                       <img
                         src={user?.picture || '/placeholder.svg'}
                         alt={user?.name || 'User Avatar'}
-                        className="w-10 h-10 rounded-full"
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
                       />
                       <div>
-                        <p className="font-medium">{user?.name}</p>
-                        <p className="text-sm text-muted-foreground">{user?.email}</p>
+                        <p className="font-medium max-w-[100px] truncate sm:max-w-xs">{user?.name}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[100px] sm:max-w-xs">{user?.email}</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <div>
-                      <p className="text-sm">{user.phone}</p>
-                      <p className="text-xs text-muted-foreground">{user?.email}</p>
+                      <p className="text-xs">{user.phone}</p>
+                      <p className="text-[10px] text-muted-foreground">{user?.email}</p>
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
                     {user.bids.length}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell">
                     {format(user.createdAt, 'MMM dd, yyyy')}
                   </TableCell>
                   <TableCell>
@@ -125,6 +154,7 @@ export function Users() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

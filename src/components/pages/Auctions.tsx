@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,13 +19,41 @@ import {
 import { format } from 'date-fns';
 import { Eye, Clock, Users } from 'lucide-react';
 import type { Auction } from '@/types';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/app/store';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
+import service from '@/services/configuration';
+import { setAuctions } from '@/app/features';
 
 export function Auctions() {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
 
   const auctions: Auction[] | null = useSelector((state: RootState) => state.auctions.auctions);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    NProgress.configure({showSpinner: false});
+    // Fetch auction data from the backend API
+    const fetchAuctionData = async () => {
+      NProgress.start();
+      try {
+        const auctionsResponse = await service.getAuctions();
+        if(auctionsResponse) {   
+          dispatch(setAuctions(auctionsResponse));
+        } else {
+          throw new Error('No auctions found');
+        }
+      } catch (error) {
+        console.error('Error fetching auction data:', error);
+      } finally {
+        NProgress.done();
+      }
+    };
+
+    fetchAuctionData();
+  }, [dispatch]);
   
   function getStatusBadge(auction: Auction) {
     const now = new Date();
@@ -51,15 +79,16 @@ export function Auctions() {
           <CardTitle>All Auctions</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="w-full overflow-x-auto">
+          <Table className="min-w-[700px]">
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
+                <TableHead className="hidden sm:table-cell">Start Date</TableHead>
+                <TableHead className="hidden sm:table-cell">End Date</TableHead>
                 <TableHead>Current Bid</TableHead>
-                <TableHead>Bids</TableHead>
+                <TableHead className="hidden md:table-cell">Bids</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -71,21 +100,24 @@ export function Auctions() {
                       <img
                         src={auction?.product?.imageUrl || '/placeholder.svg'}
                         alt={auction?.product?.name || 'Unknown Product'}
-                        className="w-12 h-12 object-cover rounded"
+                        className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded"
                       />
                       <div>
-                        <p className="font-medium">{auction?.product?.name || 'Unknown Product'}</p>
-                        <p className="text-sm text-muted-foreground truncate max-w-xs">
+                        <p className="font-medium max-w-[120px] truncate sm:max-w-xs">{auction?.product?.name || 'Unknown Product'}</p>
+                        <p className="hidden lg:block text-xs text-muted-foreground truncate max-w-xs">
                           {auction?.product?.description || 'No description available'}
                         </p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>{getStatusBadge(auction)}</TableCell>
-                  <TableCell>{format(auction.startTime, 'MMM dd, yyyy')}</TableCell>
-                  <TableCell>{format(auction.endTime, 'MMM dd, yyyy')}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{format(auction.startTime, 'MMM dd, yyyy')}</TableCell>
+                  <TableCell className="hidden sm:table-cell">{format(auction.endTime, 'MMM dd, yyyy')}</TableCell>
                   <TableCell className="font-medium">
                     ${auction?.currentBid?.amount.toLocaleString() || 'No bids yet'}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {auction?.bids?.length ?? 0}
                   </TableCell>
                   <TableCell>
                     <Button
@@ -101,6 +133,7 @@ export function Auctions() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
 
