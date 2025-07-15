@@ -49,16 +49,8 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
-      <div className="flex items-center space-x-3">
-        <h1 className="hidden md:block text-lg font-semibold">Auction Dashboard</h1>
-        <div className="flex items-center space-x-2">
-          <img 
-            src="/logo.png" 
-            alt="Auction Dashboard Logo" 
-            className="h-8 w-8 md:h-10 md:w-10 rounded-lg"
-          />
-          <span className="md:hidden text-sm font-semibold">AuctionHub</span>
-        </div>
+      <div>
+        <h1 className="text-lg font-semibold">Auction Dashboard</h1>
       </div>
 
       <div className="flex items-center space-x-2 md:space-x-4">
