@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Auctions', href: '/auctions', icon: Gavel },
   { name: 'Bids', href: '/bids', icon: DollarSign },
   { name: 'Users', href: '/users', icon: Users },
