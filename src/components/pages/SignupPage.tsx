@@ -5,15 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Gavel, Mail, CheckCircle, AlertCircle } from 'lucide-react';
+import { Gavel, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import authService from '@/services/auth';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '@/app/features/authSlice';
 
 const signupSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters'),
+  name: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  dob: z.string().min(1, 'Date of birth is required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
 
@@ -21,60 +24,51 @@ type SignupForm = z.infer<typeof signupSchema>;
 
 export function SignupPage() {
   const navigate = useNavigate();
-  const [isEmailVerified, setIsEmailVerified] = useState(false);
-  const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
+  const dispatch = useDispatch();
+  // const [isEmailVerified, setIsEmailVerified] = useState(false);
+  // const [isVerifyingEmail, setIsVerifyingEmail] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<SignupForm>({
     resolver: zodResolver(signupSchema),
   });
 
-  const emailValue = watch('email');
+  // const emailValue = watch('email');
 
-  const handleEmailVerification = async () => {
-    if (!emailValue || errors.email) return;
+  // const handleEmailVerification = async () => {
+  //   if (!emailValue || errors.email) return;
     
-    setIsVerifyingEmail(true);
-    // Simulate email verification
-    setTimeout(() => {
-      setIsEmailVerified(true);
-      setIsVerifyingEmail(false);
-    }, 2000);
-  };
+  //   setIsVerifyingEmail(true);
+  //   // Simulate email verification
+  //   setTimeout(() => {
+  //     setIsEmailVerified(true);
+  //     setIsVerifyingEmail(false);
+  //   }, 2000);
+  // };
 
   const onSubmit = async (data: SignupForm) => {
-    if (!isEmailVerified) {
-      setSubmitError('Please verify your email address first');
-      return;
-    }
+    // if (!isEmailVerified) {
+    //   setSubmitError('Please verify your email address first');
+    //   return;
+    // }
 
     setIsSubmitting(true);
     setSubmitError('');
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Store user data in localStorage (simulate successful registration)
-      const userData = {
-        id: Date.now().toString(),
-        name: data.fullName,
-        email: data.email,
-        dateOfBirth: data.dateOfBirth,
-        picture: null,
-        isAuthenticated: true,
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userData));
-      navigate('/dashboard');
-    } catch (error) {
-      setSubmitError('Registration failed. Please try again.');
+      const userData = await authService.createAccount(data);
+     
+      if(userData) {
+        dispatch(loginUser(userData));
+        navigate('/dashboard');
+      }
+    } catch (error: any) {
+      setSubmitError(error.mesasge || 'Registration failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +83,7 @@ export function SignupPage() {
           </div>
           <CardTitle className="text-2xl">Create Account</CardTitle>
           <CardDescription>
-            Join AuctionHub to start managing auctions
+            Join AuctionHub to start Buying and Selling Antique and Valuable Products
           </CardDescription>
         </CardHeader>
         
@@ -101,11 +95,11 @@ export function SignupPage() {
               <Input
                 id="fullName"
                 placeholder="Enter your full name"
-                {...register('fullName')}
-                className={errors.fullName ? 'border-destructive' : ''}
+                {...register('name')}
+                className={errors.name ? 'border-destructive' : ''}
               />
-              {errors.fullName && (
-                <p className="text-sm text-destructive">{errors.fullName.message}</p>
+              {errors.name && (
+                <p className="text-sm text-destructive">{errors.name.message}</p>
               )}
             </div>
 
@@ -120,24 +114,9 @@ export function SignupPage() {
                   {...register('email')}
                   className={`flex-1 ${errors.email ? 'border-destructive' : ''}`}
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEmailVerification}
-                  disabled={!emailValue || !!errors.email || isEmailVerified || isVerifyingEmail}
-                  className="px-3"
-                >
-                  {isVerifyingEmail ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : isEmailVerified ? (
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Mail className="h-4 w-4" />
-                  )}
-                </Button>
+                
               </div>
-              {errors.email && (
+              {/* {errors.email && (
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
               {isEmailVerified && (
@@ -145,7 +124,7 @@ export function SignupPage() {
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Email verified successfully
                 </p>
-              )}
+              )} */}
             </div>
 
             {/* Date of Birth */}
@@ -154,11 +133,11 @@ export function SignupPage() {
               <Input
                 id="dateOfBirth"
                 type="date"
-                {...register('dateOfBirth')}
-                className={errors.dateOfBirth ? 'border-destructive' : ''}
+                {...register('dob')}
+                className={errors.dob ? 'border-destructive' : ''}
               />
-              {errors.dateOfBirth && (
-                <p className="text-sm text-destructive">{errors.dateOfBirth.message}</p>
+              {errors.dob && (
+                <p className="text-sm text-destructive">{errors.dob.message}</p>
               )}
             </div>
 
@@ -180,8 +159,10 @@ export function SignupPage() {
             {/* Error Alert */}
             {submitError && (
               <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{submitError}</AlertDescription>
+                <div className='flex items-center gap-2'>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{submitError}</AlertDescription>
+                </div>
               </Alert>
             )}
 
@@ -215,3 +196,20 @@ export function SignupPage() {
     </div>
   );
 }
+
+{/* <Button
+  type="button"
+  variant="outline"
+  size="sm"
+  onClick={handleEmailVerification}
+  disabled={!emailValue || !!errors.email || isEmailVerified || isVerifyingEmail}
+  className="px-3"
+>
+  {isVerifyingEmail ? (
+    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+  ) : isEmailVerified ? (
+    <CheckCircle className="h-4 w-4 text-green-600" />
+  ) : (
+    <Mail className="h-4 w-4" />
+  )}
+</Button> */}

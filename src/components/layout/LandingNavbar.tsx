@@ -15,28 +15,6 @@ export function LandingNavbar() {
           <span className="text-xl font-bold">AuctionHub</span>
         </Link>
 
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-6">
-          <Link 
-            to="/" 
-            className="text-sm font-medium text-foreground hover:text-primary transition-colors"
-          >
-            Home
-          </Link>
-          <Link 
-            to="/signin" 
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Sign In
-          </Link>
-          <Link 
-            to="/signup" 
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            Sign Up
-          </Link>
-        </nav>
-
         {/* Right side actions */}
         <div className="flex items-center space-x-2">
           {/* Theme Toggle */}
