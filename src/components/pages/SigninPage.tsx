@@ -9,6 +9,9 @@ import { Gavel, AlertCircle } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import authService from '@/services/auth';
+import { useDispatch } from 'react-redux';
+import { loginUser } from '@/app/features/authSlice';
 
 const signinSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -19,6 +22,7 @@ type SigninForm = z.infer<typeof signinSchema>;
 
 export function SigninPage() {
   const navigate = useNavigate();
+  const dispath = useDispatch();
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -33,30 +37,32 @@ export function SigninPage() {
   const onSubmit = async (data: SigninForm) => {
     setIsSubmitting(true);
     setSubmitError('');
-
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Simulate authentication check
-      if (data.email === 'demo@auctionhub.com' && data.password === 'password123') {
-        // Store user data in localStorage (simulate successful login)
-        const userData = {
-          id: '1',
-          name: 'Demo User',
-          email: data.email,
-          dateOfBirth: '1990-01-01',
-          picture: null,
-          isAuthenticated: true,
-        };
-        
-        localStorage.setItem('user', JSON.stringify(userData));
+      const userData = await authService.login(data);
+      if(userData) {
+        dispath(loginUser(data));
         navigate('/dashboard');
       } else {
         setSubmitError('Invalid email or password. Try demo@auctionhub.com / password123');
       }
-    } catch (error) {
-      setSubmitError('Sign in failed. Please try again.');
+      
+      // // Simulate authentication check
+      // if (data.email === 'demo@auctionhub.com' && data.password === 'password123') {
+      //   // Store user data in localStorage (simulate successful login)
+      //   const userData = {
+      //     id: '1',
+      //     name: 'Demo User',
+      //     email: data.email,
+      //     dateOfBirth: '1990-01-01',
+      //     picture: null,
+      //     isAuthenticated: true,
+      //   };
+        
+      //   localStorage.setItem('user', JSON.stringify(userData));
+      //   navigate('/dashboard');
+      // } 
+    } catch (error: any) {
+      setSubmitError(error.message || 'Sign in failed. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -119,8 +125,10 @@ export function SigninPage() {
             {/* Error Alert */}
             {submitError && (
               <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{submitError}</AlertDescription>
+                <div className='flex items-center gap-2'>
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{submitError}</AlertDescription>
+                </div>
               </Alert>
             )}
 

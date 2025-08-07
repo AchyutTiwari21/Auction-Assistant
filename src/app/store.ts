@@ -3,6 +3,7 @@ import userReducer from './features/usersSlice';
 import auctionReducer from './features/auctionSlice';
 import bidReducer from './features/bidSlice';
 import callLogReducer from './features/callLogSlice';
+import authReducer from './features/authSlice';
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     auctions: auctionReducer,
     bids: bidReducer,
     callLogs: callLogReducer,
+    auth: authReducer
   },
 });
 
