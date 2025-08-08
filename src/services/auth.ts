@@ -74,6 +74,9 @@ export class AuthService {
             if(!response.ok) {
                 throw new Error(data.message || 'Invalid email or OTP.');
             } else {
+                window.omnidimension?.setUserContext({
+                    jwt: data.data.accessToken,
+                });
                 return data.data.user;
             }   
 
