@@ -40,7 +40,7 @@ export function SigninPage() {
     try {
       const userData = await authService.login(data);
       if(userData) {
-        dispath(loginUser(data));
+        dispath(loginUser(userData));
         navigate('/dashboard');
       } else {
         setSubmitError('Invalid email or password. Try demo@auctionhub.com / password123');

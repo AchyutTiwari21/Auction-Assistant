@@ -13,29 +13,45 @@ import { User, LogOut } from 'lucide-react';
 import { useTheme } from '@/components/providers/ThemeProvider';
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import authService from '@/services/auth';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
 interface UserData {
   id: string;
   name: string;
   email: string;
   picture: string | null;
+  dob: string | null;
+  totalBids: string | null;
 }
 
 export function Header() {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const selectedUser = useSelector((state: any) => state.auth.userData);
   const [user, setUser] = useState<UserData | null>(null);
+  NProgress.configure({showSpinner: false});
 
   useEffect(() => {
-    const stored = localStorage.getItem('user');
-    if (stored) {
-      setUser(JSON.parse(stored));
+    if (selectedUser) {
+      console.log("User: ", selectedUser);
+      
+      setUser(selectedUser);
     }
-  }, []);
+  }, [selectedUser]);
 
-  const handleSignOut = () => {
-    localStorage.removeItem('user');
-    navigate('/');
+  const handleSignOut = async () => {
+    try {
+      NProgress.start();
+      const isLogout = await authService.logout();
+      if(isLogout) navigate('/');
+    } catch (error: any) {
+      console.log(error.message || "Error while logging out");
+    } finally {
+      NProgress.done();
+    }
   };
 
   const getInitials = (name: string) => {
