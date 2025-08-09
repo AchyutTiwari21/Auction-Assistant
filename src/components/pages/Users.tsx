@@ -22,9 +22,9 @@ import { setUsers } from '@/app/features';
 export function Users() {
   const users: UsersType[] | null = useSelector((state: RootState) => state.users.users);
   const dispatch = useDispatch();
+  NProgress.configure({showSpinner: false});
 
   useEffect(() => {
-    NProgress.configure({showSpinner: false});
     // Fetch user data from the backend API
     const fetchUserData = async () => {
       NProgress.start();
@@ -111,7 +111,7 @@ export function Users() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                <TableHead className="hidden sm:table-cell">Email</TableHead>
                 <TableHead>Total Bids</TableHead>
                 <TableHead className="hidden md:table-cell">Registered</TableHead>
                 <TableHead>Status</TableHead>
@@ -135,8 +135,7 @@ export function Users() {
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <div>
-                      <p className="text-xs">{user.phone}</p>
-                      <p className="text-[10px] text-muted-foreground">{user?.email}</p>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">
