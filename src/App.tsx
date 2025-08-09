@@ -14,6 +14,7 @@ import { Users } from '@/components/pages/Users';
 import { CallLogs } from '@/components/pages/CallLogs';
 import { Toaster } from '@/components/ui/sonner';
 import { useLocation } from 'react-router-dom';
+import { useFavicon } from '@/hooks/useFavicon';
 
 function AppContent() {
   const location = useLocation();
@@ -49,6 +50,8 @@ function AppContent() {
 }
 
 function App() {
+  useFavicon();
+  
   return (
     <ThemeProvider defaultTheme="light" storageKey="auction-dashboard-theme">
       <Router>

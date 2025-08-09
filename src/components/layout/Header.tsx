@@ -36,8 +36,6 @@ export function Header() {
 
   useEffect(() => {
     if (selectedUser) {
-      console.log("User: ", selectedUser);
-      
       setUser(selectedUser);
     }
   }, [selectedUser]);

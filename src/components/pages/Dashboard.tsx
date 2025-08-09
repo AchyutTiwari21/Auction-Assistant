@@ -18,8 +18,9 @@ export function Dashboard() {
 
   const dispatch = useDispatch();
 
+  NProgress.configure({showSpinner: false});
+
   useEffect(() => {
-    NProgress.configure({showSpinner: false});
     // Fetch dashboard data from the backend API
     const fetchDashboardData = async () => {
       NProgress.start();

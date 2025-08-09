@@ -18,11 +18,12 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { useSelector } from 'react-redux';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
-  dateOfBirth: z.string().min(1, 'Date of birth is required'),
+  dob: z.string().min(1, 'Date of birth is required'),
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -31,24 +32,17 @@ interface UserData {
   id: string;
   name: string;
   email: string;
-  dateOfBirth: string;
+  dob: string;
   picture: string | null;
   isAuthenticated: boolean;
 }
 
 export function UserProfile() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [user, setUser] = useState<UserData>(() => {
-    const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : {
-      id: '1',
-      name: 'Demo User',
-      email: 'demo@auctionhub.com',
-      dateOfBirth: '1990-01-01',
-      picture: null,
-      isAuthenticated: true,
-    };
-  });
+  const userData = useSelector((state: any) => state.auth.userData);
+  const isAuthenticated = useSelector((state: any) => state.auth.status);
+
+  const [user, setUser] = useState<UserData>({...userData, isAuthenticated});
   
   const [isEditing, setIsEditing] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -64,33 +58,33 @@ export function UserProfile() {
     defaultValues: {
       name: user.name,
       email: user.email,
-      dateOfBirth: user.dateOfBirth,
+      dob: user.dob,
     },
   });
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        const updatedUser = { ...user, picture: imageUrl };
-        setUser(updatedUser);
-        localStorage.setItem('user', JSON.stringify(updatedUser));
-        setSaveMessage('Profile picture updated successfully!');
-        setTimeout(() => setSaveMessage(''), 3000);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  // const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = event.target.files?.[0];
+  //   if (file) {
+  //     const reader = new FileReader();
+  //     reader.onload = (e) => {
+  //       const imageUrl = e.target?.result as string;
+  //       const updatedUser = { ...user, picture: imageUrl };
+  //       setUser(updatedUser);
+  //       localStorage.setItem('user', JSON.stringify(updatedUser));
+  //       setSaveMessage('Profile picture updated successfully!');
+  //       setTimeout(() => setSaveMessage(''), 3000);
+  //     };
+  //     reader.readAsDataURL(file);
+  //   }
+  // };
 
-  const handleRemoveImage = () => {
-    const updatedUser = { ...user, picture: null };
-    setUser(updatedUser);
-    localStorage.setItem('user', JSON.stringify(updatedUser));
-    setSaveMessage('Profile picture removed successfully!');
-    setTimeout(() => setSaveMessage(''), 3000);
-  };
+  // const handleRemoveImage = () => {
+  //   const updatedUser = { ...user, picture: null };
+  //   setUser(updatedUser);
+  //   localStorage.setItem('user', JSON.stringify(updatedUser));
+  //   setSaveMessage('Profile picture removed successfully!');
+  //   setTimeout(() => setSaveMessage(''), 3000);
+  // };
 
   const onSubmit = async (data: ProfileForm) => {
     setIsSaving(true);
@@ -118,7 +112,7 @@ export function UserProfile() {
     reset({
       name: user.name,
       email: user.email,
-      dateOfBirth: user.dateOfBirth,
+      dob: user.dob,
     });
     setIsEditing(false);
   };
@@ -170,7 +164,7 @@ export function UserProfile() {
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex space-x-2">
+            {/* <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -190,15 +184,15 @@ export function UserProfile() {
                   Remove
                 </Button>
               )}
-            </div>
+            </div> */}
             
-            <input
+            {/* <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
               className="hidden"
-            />
+            /> */}
           </CardContent>
         </Card>
 
@@ -257,11 +251,11 @@ export function UserProfile() {
                   <Input
                     id="dateOfBirth"
                     type="date"
-                    {...register('dateOfBirth')}
-                    className={errors.dateOfBirth ? 'border-destructive' : ''}
+                    {...register('dob')}
+                    className={errors.dob ? 'border-destructive' : ''}
                   />
-                  {errors.dateOfBirth && (
-                    <p className="text-sm text-destructive">{errors.dateOfBirth.message}</p>
+                  {errors.dob && (
+                    <p className="text-sm text-destructive">{errors.dob.message}</p>
                   )}
                 </div>
 
@@ -318,7 +312,7 @@ export function UserProfile() {
                     <div className="flex items-center space-x-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        {new Date(user.dateOfBirth).toLocaleDateString('en-US', {
+                        {new Date(user.dob).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
                           day: 'numeric'
