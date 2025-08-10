@@ -4,7 +4,7 @@ export class AuthService {
 
     async getUser() {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/users/me`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/me`, {
                 method: 'GET',
                 credentials: 'include',
             });
@@ -25,7 +25,7 @@ export class AuthService {
 
     signupWithGoogle() {
         try {
-            window.location.href = `${config.LOCAL_API_URL}/users/signupWithGoogle`;
+            window.location.href = `${config.PRODUCTION_API_URL}/users/signupWithGoogle`;
         } catch (error) {
             console.error('Error while initiating Google signup:', error);
             throw error;
@@ -34,7 +34,7 @@ export class AuthService {
 
     async createAccount({name, email, dob, password}: {name: string, email: string, dob: string, password: string}) {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/users/signup`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/signup`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -60,7 +60,7 @@ export class AuthService {
       
     async login({email, password}: {email: string, password: string}) {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/users/signin`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/signin`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -88,7 +88,7 @@ export class AuthService {
 
     async logout() {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/users/signout`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/signout`, {
                 method: 'POST',
                 credentials: 'include',
             });

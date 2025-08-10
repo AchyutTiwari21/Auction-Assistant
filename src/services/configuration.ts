@@ -4,7 +4,7 @@ export class Service{
 
     async getAuctions() {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/auctions`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/auctions`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -24,7 +24,7 @@ export class Service{
 
     async getAllBids() {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/auctions/allBids`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/auctions/allBids`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -44,7 +44,7 @@ export class Service{
 
     async getCallLogs() {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/calls/callLogs`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/calls/callLogs`, {
                 method: 'GET',
                 credentials: 'include'
             });
@@ -63,7 +63,7 @@ export class Service{
 
     async getAllUsers() {
         try {
-            const response = await fetch(`${config.LOCAL_API_URL}/users/getAllUsers`, {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/getAllUsers`, {
                 method: 'GET',
                 credentials: 'include'
             });
