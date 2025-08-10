@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,9 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  User, 
-  Camera, 
-  Trash2, 
+  User,
   Save, 
   Mail, 
   Calendar,
@@ -38,7 +36,7 @@ interface UserData {
 }
 
 export function UserProfile() {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  // const fileInputRef = useRef<HTMLInputElement>(null);
   const userData = useSelector((state: any) => state.auth.userData);
   const isAuthenticated = useSelector((state: any) => state.auth.status);
 
