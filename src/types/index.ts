@@ -79,7 +79,7 @@ export interface Bids {
 export interface CallLog {
   id: string;
   userId: string;
-  phone: string;
+  email: string;
   auctionId: string;
   startedAt: string;   // ISO timestamp (you can convert to Date if needed)
   endedAt: string;     // ISO timestamp

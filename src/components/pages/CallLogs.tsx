@@ -24,8 +24,9 @@ export function CallLogs() {
 
   const dispatch = useDispatch();
 
+  NProgress.configure({showSpinner: false});
+
   useEffect(() => {
-    NProgress.configure({showSpinner: false});
     // Fetch dashboard data from the backend API
     const fetchCallLogsData = async () => {
       NProgress.start();
@@ -156,7 +157,7 @@ export function CallLogs() {
             <TableHeader>
               <TableRow>
                 <TableHead>User</TableHead>
-                <TableHead>Phone Number</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Started At</TableHead>
                 <TableHead className="hidden sm:table-cell">Ended At</TableHead>
                 <TableHead>Status</TableHead>
@@ -182,7 +183,7 @@ export function CallLogs() {
                     </div>
                   </TableCell>
                   <TableCell className="font-mono">
-                    {log.phone}
+                    {log.email}
                   </TableCell>
                   <TableCell>
                     <div>
