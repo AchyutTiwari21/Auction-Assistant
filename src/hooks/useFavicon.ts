@@ -33,55 +33,28 @@ export const useFavicon = () => {
     );
     const gavelDataUrl = `data:image/svg+xml,${encodeURIComponent(gavelIconSvg)}`;
 
-    // Get the current favicon link or create one
-    let faviconLink = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-    if (!faviconLink) {
-      faviconLink = document.createElement('link');
-      faviconLink.rel = 'icon';
-      faviconLink.type = 'image/svg+xml';
-      document.head.appendChild(faviconLink);
-    }
+    // Find the main favicon link (the one from index.html)
+    let faviconLink = document.querySelector('link[rel="icon"][type="image/svg+xml"]') as HTMLLinkElement;
     
-    const originalFavicon = '/favicon.svg';
+    // Store the original favicon URL from the HTML
+    // const originalFavicon = faviconLink?.href || '/favicon.svg?v=2025';
 
-    // Function to update favicon with cache busting
+    // Function to safely update favicon
     const updateFavicon = (href: string) => {
-      const timestamp = new Date().getTime();
-      faviconLink.href = `${href}?v=${timestamp}`;
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        // Tab is inactive - show Gavel icon
-        updateFavicon(gavelDataUrl);
-      } else {
-        // Tab is active - show original favicon
-        updateFavicon(originalFavicon);
+      if (faviconLink) {
+        faviconLink.href = href;
       }
     };
 
-    // Force browser to load new favicon immediately
-    // Remove existing favicon links to clear cache
-    const existingLinks = document.querySelectorAll('link[rel*="icon"]');
-    existingLinks.forEach(link => link.remove());
-    
-    // Create new favicon link with the Gavel icon
-    const newFaviconLink = document.createElement('link');
-    newFaviconLink.rel = 'icon';
-    newFaviconLink.type = 'image/svg+xml';
-    newFaviconLink.href = gavelDataUrl;
-    document.head.appendChild(newFaviconLink);
-    
-    // Update our reference
-    faviconLink = newFaviconLink;
-
-    // Listen for tab visibility changes
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Always use the black background with white Gavel icon
+    // Set the favicon immediately on page load
+    updateFavicon(gavelDataUrl);
 
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      // Restore original favicon on cleanup
-      updateFavicon(originalFavicon);
+      // Keep the Gavel icon even on cleanup to maintain consistency
+      if (faviconLink) {
+        updateFavicon(gavelDataUrl);
+      }
     };
   }, []);
 };
