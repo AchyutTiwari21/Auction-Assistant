@@ -32,7 +32,7 @@ export class AuthService {
         }
     }
 
-    async createAccount({name, email, dob, password}: {name: string, email: string, dob: string, password: string}) {
+    async createAccount({name, email, username, dob, password}: {name: string, email: string, username: string, dob: string, password: string}) {
         try {
             const response = await fetch(`${config.PRODUCTION_API_URL}/users/signup`, {
                 method: 'POST',
@@ -40,7 +40,7 @@ export class AuthService {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({name, email, dob, password})
+                body: JSON.stringify({name, email, username, dob, password})
             });
 
             const data = await response.json();
@@ -48,7 +48,7 @@ export class AuthService {
             if(!response.ok) {
                 throw new Error(data.message || 'Error while creating Account.');
             } else {
-                const userData = await this.login({email, password});
+                const userData = await this.login({username, password});
                 if(userData) return userData;
             }   
 
@@ -58,7 +58,7 @@ export class AuthService {
         }
     }
       
-    async login({email, password}: {email: string, password: string}) {
+    async login({username, password}: {username: string, password: string}) {
         try {
             const response = await fetch(`${config.PRODUCTION_API_URL}/users/signin`, {
                 method: 'POST',
@@ -66,7 +66,7 @@ export class AuthService {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({email, password})
+                body: JSON.stringify({username, password})
             });
 
             const data = await response.json();
@@ -74,9 +74,7 @@ export class AuthService {
             if(!response.ok) {
                 throw new Error(data.message || 'Invalid email or OTP.');
             } else {
-                window.omnidimension?.setUserContext({
-                    jwt: data.data.accessToken,
-                });
+                // localStorage.setItem('token', data.data.accessToken);
                 return data.data.user;
             }   
 

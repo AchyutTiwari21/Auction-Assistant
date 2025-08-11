@@ -14,7 +14,7 @@ import { useDispatch } from 'react-redux';
 import { loginUser } from '@/app/features/authSlice';
 
 const signinSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  username: z.string().min(5, 'Username is required and must be 5 character long.'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -83,18 +83,18 @@ export function SigninPage() {
         
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            {/* Email */}
+            {/* Username */}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                {...register('email')}
-                className={errors.email ? 'border-destructive' : ''}
+                id="username"
+                type="text"
+                placeholder="Enter your username"
+                {...register('username')}
+                className={errors.username ? 'border-destructive' : ''}
               />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
+              {errors.username && (
+                <p className="text-sm text-destructive">{errors.username.message}</p>
               )}
             </div>
 

@@ -20,6 +20,15 @@ export function Dashboard() {
 
   NProgress.configure({showSpinner: false});
 
+  // useEffect(() => {
+  //   const token = localStorage.getItem('token');
+  //   console.log("Token", token);
+
+  //   window.omnidimension?.setUserContext({
+  //     jwt: token,
+  //   });
+  // }, []);
+
   useEffect(() => {
     // Fetch dashboard data from the backend API
     const fetchDashboardData = async () => {

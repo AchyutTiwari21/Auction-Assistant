@@ -16,6 +16,7 @@ import { loginUser } from '@/app/features/authSlice';
 const signupSchema = z.object({
   name: z.string().min(2, 'Full name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
+  username: z.string().min(5, 'Username must be at least 5 characters'),
   dob: z.string().min(1, 'Date of birth is required'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
 });
@@ -116,15 +117,30 @@ export function SignupPage() {
                 />
                 
               </div>
-              {/* {errors.email && (
+              {errors.email && (
                 <p className="text-sm text-destructive">{errors.email.message}</p>
               )}
-              {isEmailVerified && (
+              {/* {isEmailVerified && (
                 <p className="text-sm text-green-600 flex items-center">
                   <CheckCircle className="h-4 w-4 mr-1" />
                   Email verified successfully
                 </p>
               )} */}
+            </div>
+
+            {/* Username */}
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                type="text"
+                placeholder="Create a username"
+                {...register('username')}
+                className={errors.username ? 'border-destructive' : ''}
+              />
+              {errors.username && (
+                <p className="text-sm text-destructive">{errors.username.message}</p>
+              )}
             </div>
 
             {/* Date of Birth */}

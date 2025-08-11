@@ -1,7 +1,7 @@
 declare global {
   interface Window {
     omnidimension?: {
-      setUserContext: (context: { jwt: string }) => void;
+      setUserContext: (context: { jwt: string | null }) => void;
     };
   }
 }

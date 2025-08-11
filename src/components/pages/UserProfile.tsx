@@ -22,6 +22,7 @@ const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Please enter a valid email address'),
   dob: z.string().min(1, 'Date of birth is required'),
+  username: z.string().min(5, 'Username must be 5 characters.')
 });
 
 type ProfileForm = z.infer<typeof profileSchema>;
@@ -32,6 +33,7 @@ interface UserData {
   email: string;
   dob: string;
   picture: string | null;
+  username: string;
   isAuthenticated: boolean;
 }
 
@@ -57,6 +59,7 @@ export function UserProfile() {
       name: user.name,
       email: user.email,
       dob: user.dob,
+      username: user.username
     },
   });
 
@@ -243,6 +246,21 @@ export function UserProfile() {
                   )}
                 </div>
 
+                {/* Username */}
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    type="text"
+                    placeholder="Enter your username"
+                    {...register('username')}
+                    className={errors.username ? 'border-destructive' : ''}
+                  />
+                  {errors.username && (
+                    <p className="text-sm text-destructive">{errors.username.message}</p>
+                  )}
+                </div>
+
                 {/* Date of Birth */}
                 <div className="space-y-2">
                   <Label htmlFor="dateOfBirth">Date of Birth</Label>
@@ -319,9 +337,9 @@ export function UserProfile() {
                     </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">User ID</Label>
-                    <span className="text-sm font-mono">{user.id}</span>
+                  <div className="inline-flex flex-col space-y-2">
+                    <Label className="text-sm font-medium text-muted-foreground">User Name</Label>
+                    <span className="text-sm font-mono">{user.username}</span>
                   </div>
                 </div>
               </div>
