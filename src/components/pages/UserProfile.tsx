@@ -347,6 +347,28 @@ export function UserProfile() {
           </CardContent>
         </Card>
       </div>
+      <div className='flex justify-center items-start'>
+        <Card>
+        <CardHeader className="text-center">
+            <CardTitle>Demo Credentials</CardTitle>
+            <CardDescription>
+              Demo Credentials for interacting with the AI Voice Assistant.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className='flex flex-col justify-center items-center space-y-2'>
+              <div className="inline-flex flex-col">
+                <Label className="text-sm font-medium text-muted-foreground">User Name</Label>
+                <span className="text-sm font-mono">{user.username}</span>
+              </div>
+              <div className="inline-flex flex-col">
+                <Label className="text-sm font-medium text-muted-foreground">Password</Label>
+                <span className="text-sm font-mono">password@123</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

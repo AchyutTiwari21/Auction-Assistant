@@ -117,8 +117,8 @@ export function SigninPage() {
             <div className="p-3 bg-muted/50 rounded-md">
               <p className="text-sm text-muted-foreground">
                 <strong>Demo Credentials:</strong><br />
-                Email: demo@auctionhub.com<br />
-                Password: password123
+                username: demo-user<br />
+                Password: password@123
               </p>
             </div>
 
