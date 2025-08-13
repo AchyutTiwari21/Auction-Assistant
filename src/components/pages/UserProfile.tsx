@@ -104,21 +104,25 @@ export function UserProfile() {
     setIsSaving(true);
     setSaveMessage('');
 
+    NProgress.start();
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const isUpdated = await authService.updateUser(data);
       
-      const updatedUser = { ...user, ...data };
-      setUser(updatedUser);
-      localStorage.setItem('user', JSON.stringify(updatedUser));
-      
-      setIsEditing(false);
-      setSaveMessage('Profile updated successfully!');
-      setTimeout(() => setSaveMessage(''), 3000);
+      if(isUpdated) {
+        const updatedUser = { ...user, ...data };
+        setUser(updatedUser);
+        
+        setIsEditing(false);
+        setSaveMessage('Profile updated successfully!');
+        setTimeout(() => setSaveMessage(''), 3000);
+      } else {
+        throw new Error("Unable to update the user!")
+      }
     } catch (error) {
       setSaveMessage('Failed to update profile. Please try again.');
     } finally {
       setIsSaving(false);
+      NProgress.done();
     }
   };
 
@@ -127,6 +131,7 @@ export function UserProfile() {
       name: user.name,
       email: user.email,
       dob: user.dob,
+      username: user.username
     });
     setIsEditing(false);
   };
@@ -276,9 +281,9 @@ export function UserProfile() {
 
                 {/* Date of Birth */}
                 <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                  <Label htmlFor="dob">Date of Birth</Label>
                   <Input
-                    id="dateOfBirth"
+                    id="dob"
                     type="date"
                     {...register('dob')}
                     className={errors.dob ? 'border-destructive' : ''}

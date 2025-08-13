@@ -126,6 +126,30 @@ export class AuthService {
         }
     }
 
+    async updateUser({name, email, dob, username}: {name: string, email: string, dob: string, username: string}) {
+        try {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/updateUser`, {
+                method: 'PUT',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({name, email, username, dob})
+            });
+
+            const data = await response.json();
+
+            if(!response.ok) {
+                throw new Error(data.message || 'Error while creating Account.');
+            } else {
+                return true;
+            }   
+
+        } catch (error) {
+            console.log('Error while signing up.');
+            throw error;
+        }
+    }
 }
 
 const authService = new AuthService();
