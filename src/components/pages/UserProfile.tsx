@@ -1,10 +1,13 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   User,
   Save, 
@@ -13,13 +16,20 @@ import {
   CheckCircle,
   Camera,
   AlertCircle,
-  Trash2
+  Trash2,
+  CreditCard,
+  Plus,
+  Clock,
+  DollarSign,
+  Award,
+  Eye
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useSelector, useDispatch } from 'react-redux';
 import authService from '@/services/auth';
+import bidService from '@/services/bidService';
 import { updateUser } from '@/app/features/authSlice';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
@@ -31,7 +41,15 @@ const profileSchema = z.object({
   username: z.string().min(5, 'Username must be 5 characters.')
 });
 
+const paymentSchema = z.object({
+  cardNumber: z.string().min(16, 'Card number must be at least 16 digits'),
+  expiryDate: z.string().min(1, 'Expiry date is required'),
+  cvv: z.string().min(3, 'CVV must be at least 3 digits'),
+  cardholderName: z.string().min(2, 'Cardholder name must be at least 2 characters')
+});
+
 type ProfileForm = z.infer<typeof profileSchema>;
+type PaymentForm = z.infer<typeof paymentSchema>;
 
 interface UserData {
   id: string;
@@ -41,6 +59,29 @@ interface UserData {
   picture: string | null;
   username: string;
   isAuthenticated: boolean;
+}
+
+interface UserBid {
+  id: string;
+  amount: number;
+  createdAt: string;
+  auction: {
+    id: string;
+    endTime: string;
+    product: {
+      name: string;
+      imageUrl: string | null;
+    };
+  };
+  isWinning: boolean;
+}
+
+interface PaymentMethod {
+  id: string;
+  cardNumber: string;
+  expiryDate: string;
+  cardholderName: string;
+  isDefault: boolean;
 }
 
 export function UserProfile() {
@@ -55,6 +96,15 @@ export function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  // Bid history and payment states
+  const [userBids, setUserBids] = useState<UserBid[]>([]);
+  const [winningBids, setWinningBids] = useState<UserBid[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [isLoadingBids, setIsLoadingBids] = useState(false);
+  const [isLoadingWinningBids, setIsLoadingWinningBids] = useState(false);
+  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   const dispatch = useDispatch();
 
@@ -71,6 +121,15 @@ export function UserProfile() {
       dob: user.dob,
       username: user.username
     },
+  });
+
+  const {
+    register: registerPayment,
+    handleSubmit: handleSubmitPayment,
+    reset: resetPayment,
+    formState: { errors: paymentErrors, isDirty: isPaymentDirty },
+  } = useForm<PaymentForm>({
+    resolver: zodResolver(paymentSchema),
   });
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,6 +197,64 @@ export function UserProfile() {
     }
   };
 
+  // Fetch user bids and payment methods on component mount
+  useEffect(() => {
+    if (user.id) {
+      fetchUserBids();
+      fetchWinningBids();
+      fetchPaymentMethods();
+    }
+  }, [user.id]);
+
+  const fetchUserBids = async () => {
+    setIsLoadingBids(true);
+    try {
+      const bids = await bidService.getUserBids(user.id);
+      setUserBids(bids);
+    } catch (error) {
+      console.error('Error fetching user bids:', error);
+    } finally {
+      setIsLoadingBids(false);
+    }
+  };
+
+  const fetchWinningBids = async () => {
+    setIsLoadingWinningBids(true);
+    try {
+      const bids = await bidService.getWinningBids(user.id);
+      setWinningBids(bids);
+    } catch (error) {
+      console.error('Error fetching winning bids:', error);
+    } finally {
+      setIsLoadingWinningBids(false);
+    }
+  };
+
+  const fetchPaymentMethods = async () => {
+    setIsLoadingPayments(true);
+    try {
+      const payments = await bidService.getPaymentMethods(user.id);
+      setPaymentMethods(payments);
+    } catch (error) {
+      console.error('Error fetching payment methods:', error);
+    } finally {
+      setIsLoadingPayments(false);
+    }
+  };
+
+  const handleAddPaymentMethod = async (data: PaymentForm) => {
+    try {
+      await bidService.addPaymentMethod(user.id, data);
+      setShowPaymentDialog(false);
+      resetPayment();
+      fetchPaymentMethods(); // Refresh payment methods
+      setSaveMessage('Payment method added successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error: any) {
+      setSaveMessage('Failed to add payment method. Please try again.');
+    }
+  };
+
   const handleCancelEdit = () => {
     reset({
       name: user.name,
@@ -155,6 +272,27 @@ export function UserProfile() {
       .join('')
       .toUpperCase()
       .slice(0, 2);
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const maskCardNumber = (cardNumber: string) => {
+    return `**** **** **** ${cardNumber.slice(-4)}`;
   };
 
   return (
@@ -377,6 +515,299 @@ export function UserProfile() {
           </CardContent>
         </Card>
       </div>
+      {/* Bid History Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Bid History
+          </CardTitle>
+          <CardDescription>
+            View all your bids and their current status
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoadingBids ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="ml-2">Loading bid history...</span>
+            </div>
+          ) : userBids.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No bids found. Start bidding on auctions to see your history here.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Product</TableHead>
+                    <TableHead>Bid Amount</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {userBids.map((bid) => (
+                    <TableRow key={bid.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          {bid.auction.product.imageUrl && (
+                            <img
+                              src={bid.auction.product.imageUrl}
+                              alt={bid.auction.product.name}
+                              className="h-10 w-10 rounded object-cover"
+                            />
+                          )}
+                          <div>
+                            <p className="font-medium">{bid.auction.product.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Ends: {formatDate(bid.auction.endTime)}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {formatCurrency(bid.amount)}
+                      </TableCell>
+                      <TableCell>{formatDate(bid.createdAt)}</TableCell>
+                      <TableCell>
+                        <Badge variant={bid.isWinning ? "default" : "secondary"}>
+                          {bid.isWinning ? (
+                            <>
+                              <Award className="h-3 w-3 mr-1" />
+                              Winning
+                            </>
+                          ) : (
+                            <>
+                              <Clock className="h-3 w-3 mr-1" />
+                              Active
+                            </>
+                          )}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Winning Bids Section */}
+      {winningBids.length > 0 && (
+        <Card className="border-green-200 bg-green-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-green-800">
+              <Award className="h-5 w-5" />
+              Winning Bids - Payment Required
+            </CardTitle>
+            <CardDescription className="text-green-700">
+              Congratulations! You have winning bids that require payment
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoadingWinningBids ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span className="ml-2">Loading winning bids...</span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {winningBids.map((bid) => (
+                  <div
+                    key={bid.id}
+                    className="flex items-center justify-between p-4 border border-green-200 rounded-lg bg-white"
+                  >
+                    <div className="flex items-center space-x-3">
+                      {bid.auction.product.imageUrl && (
+                        <img
+                          src={bid.auction.product.imageUrl}
+                          alt={bid.auction.product.name}
+                          className="h-12 w-12 rounded object-cover"
+                        />
+                      )}
+                      <div>
+                        <p className="font-medium text-green-900">{bid.auction.product.name}</p>
+                        <p className="text-sm text-green-700">
+                          Winning Bid: {formatCurrency(bid.amount)}
+                        </p>
+                        <p className="text-sm text-green-600">
+                          Won on: {formatDate(bid.createdAt)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="default" className="bg-green-600">
+                        <Award className="h-3 w-3 mr-1" />
+                        Winner
+                      </Badge>
+                      <Button className="bg-green-600 hover:bg-green-700">
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Pay Now
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Payment Methods Section */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Payment Methods
+            </CardTitle>
+            <CardDescription>
+              Manage your payment methods for winning bids
+            </CardDescription>
+          </div>
+          <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Payment Method
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Payment Method</DialogTitle>
+                <DialogDescription>
+                  Add a new credit or debit card for processing payments
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmitPayment(handleAddPaymentMethod)} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cardholderName">Cardholder Name</Label>
+                  <Input
+                    id="cardholderName"
+                    placeholder="John Doe"
+                    {...registerPayment('cardholderName')}
+                    className={paymentErrors.cardholderName ? 'border-destructive' : ''}
+                  />
+                  {paymentErrors.cardholderName && (
+                    <p className="text-sm text-destructive">{paymentErrors.cardholderName.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="cardNumber">Card Number</Label>
+                  <Input
+                    id="cardNumber"
+                    placeholder="1234 5678 9012 3456"
+                    {...registerPayment('cardNumber')}
+                    className={paymentErrors.cardNumber ? 'border-destructive' : ''}
+                  />
+                  {paymentErrors.cardNumber && (
+                    <p className="text-sm text-destructive">{paymentErrors.cardNumber.message}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Input
+                      id="expiryDate"
+                      placeholder="MM/YY"
+                      {...registerPayment('expiryDate')}
+                      className={paymentErrors.expiryDate ? 'border-destructive' : ''}
+                    />
+                    {paymentErrors.expiryDate && (
+                      <p className="text-sm text-destructive">{paymentErrors.expiryDate.message}</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="cvv">CVV</Label>
+                    <Input
+                      id="cvv"
+                      placeholder="123"
+                      {...registerPayment('cvv')}
+                      className={paymentErrors.cvv ? 'border-destructive' : ''}
+                    />
+                    {paymentErrors.cvv && (
+                      <p className="text-sm text-destructive">{paymentErrors.cvv.message}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex space-x-2 pt-4">
+                  <Button 
+                    type="submit" 
+                    disabled={!isPaymentDirty}
+                    className="flex-1"
+                  >
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Add Card
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowPaymentDialog(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          {isLoadingPayments ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              <span className="ml-2">Loading payment methods...</span>
+            </div>
+          ) : paymentMethods.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <CreditCard className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No payment methods found. Add a payment method to pay for winning bids.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {paymentMethods.map((payment) => (
+                <div
+                  key={payment.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
+                  <div className="flex items-center space-x-3">
+                    <CreditCard className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">{payment.cardholderName}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {maskCardNumber(payment.cardNumber)} • Expires {payment.expiryDate}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {payment.isDefault && (
+                      <Badge variant="secondary">Default</Badge>
+                    )}
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className='flex justify-center items-start'>
         <Card>
         <CardHeader className="text-center">
