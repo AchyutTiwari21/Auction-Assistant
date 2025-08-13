@@ -12,7 +12,8 @@ import {
   Calendar,
   CheckCircle,
   Camera,
-  AlertCircle 
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -92,13 +93,25 @@ export function UserProfile() {
     }
   };
 
-  // const handleRemoveImage = () => {
-  //   const updatedUser = { ...user, picture: null };
-  //   setUser(updatedUser);
-  //   localStorage.setItem('user', JSON.stringify(updatedUser));
-  //   setSaveMessage('Profile picture removed successfully!');
-  //   setTimeout(() => setSaveMessage(''), 3000);
-  // };
+  const handleRemoveImage = async () => {
+    NProgress.start();
+    try {
+      const isRemoved = await authService.removeUserPicture();
+      if(isRemoved) {
+        const updatedUser = { ...user, picture: null };
+        setUser(updatedUser);
+        dispatch(updateUser(updatedUser));
+        setSaveMessage('Profile picture removed successfully!');
+        setTimeout(() => setSaveMessage(''), 3000);
+      } else {
+        throw new Error("Error while removing picture.")
+      }
+    } catch (error: any) {
+      console.error(error.message || "Error while removing picture.");
+    } finally {
+      NProgress.done();
+    }
+  };
 
   const onSubmit = async (data: ProfileForm) => {
     setIsSaving(true);
@@ -106,13 +119,12 @@ export function UserProfile() {
 
     NProgress.start();
     try {
-      const isUpdated = await authService.updateUser(data);
-      
+      const isUpdated = await authService.updateUser(data); 
       if(isUpdated) {
         const updatedUser = { ...user, ...data };
         setUser(updatedUser);
-        
         setIsEditing(false);
+        dispatch(updateUser(updatedUser));
         setSaveMessage('Profile updated successfully!');
         setTimeout(() => setSaveMessage(''), 3000);
       } else {
@@ -193,7 +205,7 @@ export function UserProfile() {
                 {user.picture ? 'Change' : 'Upload'}
               </Button>
               
-              {/* {user.picture && (
+              {user.picture && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -202,7 +214,7 @@ export function UserProfile() {
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remove
                 </Button>
-              )} */}
+              )}
             </div>
             
             <input

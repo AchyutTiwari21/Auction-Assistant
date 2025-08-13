@@ -126,6 +126,26 @@ export class AuthService {
         }
     }
 
+    async removeUserPicture() {
+        try {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/removeUserPicture`, {
+                method: 'PUT',
+                credentials: 'include',
+            });
+
+            const data = await response.json(); 
+
+            if(!response.ok) {
+                throw new Error(data.message || "Error while removing picture.");
+            } else {
+                return true;
+            }
+        } catch (error: any) {
+            console.error(error.message || "Error while removing picture.");
+            throw error;
+        }
+    }
+
     async updateUser({name, email, dob, username}: {name: string, email: string, dob: string, username: string}) {
         try {
             const response = await fetch(`${config.PRODUCTION_API_URL}/users/updateUser`, {
