@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,12 +11,17 @@ import {
   Mail, 
   Calendar,
   CheckCircle,
+  Camera,
   AlertCircle 
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import authService from '@/services/auth';
+import { updateUser } from '@/app/features/authSlice';
+import NProgress from 'nprogress';
+import 'nprogress/nprogress.css';
 
 const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -38,7 +43,9 @@ interface UserData {
 }
 
 export function UserProfile() {
-  // const fileInputRef = useRef<HTMLInputElement>(null);
+  const formData = new FormData();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const userData = useSelector((state: any) => state.auth.userData);
   const isAuthenticated = useSelector((state: any) => state.auth.status);
 
@@ -47,6 +54,8 @@ export function UserProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+
+  const dispatch = useDispatch();
 
   const {
     register,
@@ -63,21 +72,25 @@ export function UserProfile() {
     },
   });
 
-  // const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = event.target.files?.[0];
-  //   if (file) {
-  //     const reader = new FileReader();
-  //     reader.onload = (e) => {
-  //       const imageUrl = e.target?.result as string;
-  //       const updatedUser = { ...user, picture: imageUrl };
-  //       setUser(updatedUser);
-  //       localStorage.setItem('user', JSON.stringify(updatedUser));
-  //       setSaveMessage('Profile picture updated successfully!');
-  //       setTimeout(() => setSaveMessage(''), 3000);
-  //     };
-  //     reader.readAsDataURL(file);
-  //   }
-  // };
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      formData.append('picture', file);
+      NProgress.start(); 
+      try {
+        const imageUrl = await authService.uploadPicture(formData);
+        const updatedUser = { ...user, picture: imageUrl };
+        setUser(updatedUser);
+        dispatch(updateUser(updatedUser));
+        setSaveMessage('Profile picture updated successfully!');
+        setTimeout(() => setSaveMessage(''), 3000);
+      } catch (error: any) {
+        console.error(error.message || "Error while uploading profile picture.");
+      } finally {
+        NProgress.done();
+      }
+    }
+  };
 
   // const handleRemoveImage = () => {
   //   const updatedUser = { ...user, picture: null };
@@ -165,7 +178,7 @@ export function UserProfile() {
               </AvatarFallback>
             </Avatar>
             
-            {/* <div className="flex space-x-2">
+            <div className="flex space-x-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -175,7 +188,7 @@ export function UserProfile() {
                 {user.picture ? 'Change' : 'Upload'}
               </Button>
               
-              {user.picture && (
+              {/* {user.picture && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -184,16 +197,16 @@ export function UserProfile() {
                   <Trash2 className="h-4 w-4 mr-2" />
                   Remove
                 </Button>
-              )}
-            </div> */}
+              )} */}
+            </div>
             
-            {/* <input
+            <input
               ref={fileInputRef}
               type="file"
               accept="image/*"
               onChange={handleImageUpload}
               className="hidden"
-            /> */}
+            />
           </CardContent>
         </Card>
 

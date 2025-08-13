@@ -104,6 +104,28 @@ export class AuthService {
         }
     }
 
+    async uploadPicture(formData: FormData) {
+        try {
+            const response = await fetch(`${config.PRODUCTION_API_URL}/users/addUserPicture`, {
+                method: 'POST',
+                credentials: 'include',
+                body: formData
+            });
+
+            const data = await response.json(); 
+
+            if(!response.ok) {
+                throw new Error(data.message || "Error while uploading picture.");
+            } else {
+                const picture = data.data;
+                return picture;
+            }
+        } catch (error: any) {
+            console.error(error.message || "Error while uploading picture.");
+            throw error;
+        }
+    }
+
 }
 
 const authService = new AuthService();
