@@ -123,7 +123,7 @@ export function Auctions() {
 
     NProgress.start();
     try {
-      await bidService.placeBid(biddingAuction.id, data.amount);
+      await bidService.placeBid({auctionId: biddingAuction.id, userId: userData.id, bidAmount: data.amount});
       
       // Refresh auction data
       const auctionsResponse = await service.getAuctions();
@@ -151,9 +151,9 @@ export function Auctions() {
     setBidMessage('');
   };
 
-  const handleCancelBidClick = (bidId: string) => {
-    setBidToCancel(bidId);
-  };
+  // const handleCancelBidClick = (bidId: string) => {
+  //   setBidToCancel(bidId);
+  // };
 
   const handleCancelBidConfirm = async () => {
     if (!bidToCancel) return;

@@ -90,9 +90,9 @@ export class BidService {
     }
   }
 
-  async placeBid(auctionId: string, amount: number) {
+  async placeBid({auctionId, userId, bidAmount}: {auctionId: string, userId: string, bidAmount: number}) {
     try {
-      const response = await fetch(`${config.PRODUCTION_API_URL}/bids`, {
+      const response = await fetch(`${config.PRODUCTION_API_URL}/auctions/bid`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,7 +100,8 @@ export class BidService {
         credentials: 'include',
         body: JSON.stringify({
           auctionId,
-          amount
+          userId,
+          bidAmount
         })
       });
 
