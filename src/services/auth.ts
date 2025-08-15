@@ -73,8 +73,7 @@ export class AuthService {
 
             if(!response.ok) {
                 throw new Error(data.message || 'Invalid email or OTP.');
-            } else {
-                // localStorage.setItem('token', data.data.accessToken);
+            } else { 
                 return data.data.user;
             }   
 

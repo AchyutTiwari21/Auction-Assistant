@@ -10,7 +10,10 @@ import {
   Menu,
   X
 } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useSelector } from 'react-redux';
+import { Label } from '@/components/ui/label';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -27,6 +30,8 @@ interface SidebarProps {
 export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const user = useSelector((state: any) => state.auth.userData);
 
   return (
     <>
@@ -51,12 +56,12 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen w-64 transform bg-card border-r border-border transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col',
+          'fixed left-0 top-0 z-40 h-full md:h-auto w-64 transform bg-card border-r border-border transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full',
           className
         )}
       >
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col justify-between">
           {/* Logo */}
           <div className="flex h-16 items-center justify-center border-b border-border px-6">
             <div className="flex items-center space-x-2">
@@ -65,7 +70,9 @@ export function Sidebar({ className }: SidebarProps) {
             </div>
           </div>
 
+         <div className='h-full p-2 flex flex-col justify-between'>
           {/* Navigation */}
+          <div>
           <nav className="flex-1 space-y-1 p-4">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
@@ -87,6 +94,31 @@ export function Sidebar({ className }: SidebarProps) {
               );
             })}
           </nav>
+          </div>
+          
+          <div className='flex flex-col justify-center items-start'>
+            <Card>
+            <CardHeader className="text-center">
+                <CardTitle>Demo Credentials</CardTitle>
+                <CardDescription>
+                  Demo Credentials for interacting with the AI Assistant.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className='flex flex-col justify-center items-center space-y-2'>
+                  <div className="inline-flex flex-col">
+                    <Label className="text-sm font-medium text-muted-foreground">User Name</Label>
+                    <span className="text-sm font-mono">{user.username}</span>
+                  </div>
+                  <div className="inline-flex flex-col">
+                    <Label className="text-sm font-medium text-muted-foreground">Password</Label>
+                    <span className="text-sm font-mono">password@123</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+         </div>
 
           {/* Footer */}
           <div className="border-t border-border p-4">

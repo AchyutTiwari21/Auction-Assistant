@@ -8,6 +8,17 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { 
   User,
   Save, 
@@ -22,7 +33,8 @@ import {
   Clock,
   DollarSign,
   Award,
-  Eye
+  Eye,
+  X
 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -72,8 +84,11 @@ interface UserBid {
       name: string;
       imageUrl: string | null;
     };
+    currentBid: {
+      id: string
+    }
   };
-  isWinning: boolean;
+  isWinning: boolean
 }
 
 interface PaymentMethod {
@@ -99,12 +114,12 @@ export function UserProfile() {
 
   // Bid history and payment states
   const [userBids, setUserBids] = useState<UserBid[]>([]);
-  const [winningBids, setWinningBids] = useState<UserBid[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoadingBids, setIsLoadingBids] = useState(false);
-  const [isLoadingWinningBids, setIsLoadingWinningBids] = useState(false);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [isCancellingBid, setIsCancellingBid] = useState<string | null>(null);
+  const [bidToCancel, setBidToCancel] = useState<string | null>(null);
 
   const dispatch = useDispatch();
 
@@ -201,7 +216,6 @@ export function UserProfile() {
   useEffect(() => {
     if (user.id) {
       fetchUserBids();
-      fetchWinningBids();
       fetchPaymentMethods();
     }
   }, [user.id]);
@@ -209,7 +223,7 @@ export function UserProfile() {
   const fetchUserBids = async () => {
     setIsLoadingBids(true);
     try {
-      const bids = await bidService.getUserBids(user.id);
+      const bids = await bidService.getUserBids();
       setUserBids(bids);
     } catch (error) {
       console.error('Error fetching user bids:', error);
@@ -218,17 +232,7 @@ export function UserProfile() {
     }
   };
 
-  const fetchWinningBids = async () => {
-    setIsLoadingWinningBids(true);
-    try {
-      const bids = await bidService.getWinningBids(user.id);
-      setWinningBids(bids);
-    } catch (error) {
-      console.error('Error fetching winning bids:', error);
-    } finally {
-      setIsLoadingWinningBids(false);
-    }
-  };
+
 
   const fetchPaymentMethods = async () => {
     setIsLoadingPayments(true);
@@ -253,6 +257,35 @@ export function UserProfile() {
     } catch (error: any) {
       setSaveMessage('Failed to add payment method. Please try again.');
     }
+  };
+
+  // const handleCancelBidClick = (bidId: string) => {
+  //   setBidToCancel(bidId);
+  // };
+
+  const handleCancelBidConfirm = async () => {
+    if (!bidToCancel) return;
+    
+    setIsCancellingBid(bidToCancel);
+    setSaveMessage('');
+
+    NProgress.start();
+    try {
+      await bidService.cancelBid(bidToCancel);
+      fetchUserBids(); // Refresh bid history
+      setSaveMessage('Bid cancelled successfully!');
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch (error: any) {
+      setSaveMessage('Failed to cancel bid. Please try again.');
+    } finally {
+      setIsCancellingBid(null);
+      setBidToCancel(null);
+      NProgress.done();
+    }
+  };
+
+  const handleCancelBidCancel = () => {
+    setBidToCancel(null);
   };
 
   const handleCancelEdit = () => {
@@ -575,7 +608,7 @@ export function UserProfile() {
                       <TableCell>{formatDate(bid.createdAt)}</TableCell>
                       <TableCell>
                         <Badge variant={bid.isWinning ? "default" : "secondary"}>
-                          {bid.isWinning ? (
+                          {bid.id === bid.auction.currentBid.id ? (
                             <>
                               <Award className="h-3 w-3 mr-1" />
                               Winning
@@ -589,10 +622,45 @@ export function UserProfile() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-1" />
-                          View
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
+                          { bid.id !== bid.auction.currentBid.id && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isCancellingBid === bid.id}
+                                  className="text-red-600 border-red-200 hover:bg-red-50"
+                                >
+                                  {isCancellingBid === bid.id ? (
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Bid</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel your bid of {formatCurrency(bid.amount)}? 
+                                    This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel onClick={handleCancelBidCancel}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleCancelBidConfirm} className="bg-red-600 hover:bg-red-700">
+                                    Yes, Cancel Bid
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -602,67 +670,6 @@ export function UserProfile() {
           )}
         </CardContent>
       </Card>
-
-      {/* Winning Bids Section */}
-      {winningBids.length > 0 && (
-        <Card className="border-green-200 bg-green-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-800">
-              <Award className="h-5 w-5" />
-              Winning Bids - Payment Required
-            </CardTitle>
-            <CardDescription className="text-green-700">
-              Congratulations! You have winning bids that require payment
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoadingWinningBids ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                <span className="ml-2">Loading winning bids...</span>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {winningBids.map((bid) => (
-                  <div
-                    key={bid.id}
-                    className="flex items-center justify-between p-4 border border-green-200 rounded-lg bg-white"
-                  >
-                    <div className="flex items-center space-x-3">
-                      {bid.auction.product.imageUrl && (
-                        <img
-                          src={bid.auction.product.imageUrl}
-                          alt={bid.auction.product.name}
-                          className="h-12 w-12 rounded object-cover"
-                        />
-                      )}
-                      <div>
-                        <p className="font-medium text-green-900">{bid.auction.product.name}</p>
-                        <p className="text-sm text-green-700">
-                          Winning Bid: {formatCurrency(bid.amount)}
-                        </p>
-                        <p className="text-sm text-green-600">
-                          Won on: {formatDate(bid.createdAt)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="default" className="bg-green-600">
-                        <Award className="h-3 w-3 mr-1" />
-                        Winner
-                      </Badge>
-                      <Button className="bg-green-600 hover:bg-green-700">
-                        <CreditCard className="h-4 w-4 mr-2" />
-                        Pay Now
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Payment Methods Section */}
       <Card>
@@ -808,12 +815,12 @@ export function UserProfile() {
         </CardContent>
       </Card>
 
-      <div className='flex justify-center items-start'>
+      <div className='flex justify-center items-start md:hidden'>
         <Card>
         <CardHeader className="text-center">
             <CardTitle>Demo Credentials</CardTitle>
             <CardDescription>
-              Demo Credentials for interacting with the AI Voice Assistant.
+              Demo Credentials for interacting with the AI Assistant.
             </CardDescription>
           </CardHeader>
           <CardContent>

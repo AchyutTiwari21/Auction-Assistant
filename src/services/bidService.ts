@@ -1,9 +1,9 @@
 import config from "../config";
 
 export class BidService {
-  async getUserBids(userId: string) {
+  async getUserBids() {
     try {
-      const response = await fetch(`${config.PRODUCTION_API_URL}/bids/user/${userId}`, {
+      const response = await fetch(`${config.PRODUCTION_API_URL}/auctions/userBids`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -21,9 +21,9 @@ export class BidService {
     }
   }
 
-  async getWinningBids(userId: string) {
+  async getWinningBids() {
     try {
-      const response = await fetch(`${config.PRODUCTION_API_URL}/bids/winning/${userId}`, {
+      const response = await fetch(`${config.PRODUCTION_API_URL}/auctions/winningBids`, {
         method: 'GET',
         credentials: 'include'
       });
@@ -86,6 +86,53 @@ export class BidService {
       }
     } catch (error) {
       console.error('Error fetching payment methods:', error);
+      throw error;
+    }
+  }
+
+  async placeBid(auctionId: string, amount: number) {
+    try {
+      const response = await fetch(`${config.PRODUCTION_API_URL}/bids`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          auctionId,
+          amount
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error while placing bid.');
+      } else {
+        return data;
+      }
+    } catch (error) {
+      console.error('Error placing bid:', error);
+      throw error;
+    }
+  }
+
+  async cancelBid(bidId: string) {
+    try {
+      const response = await fetch(`${config.PRODUCTION_API_URL}/bids/${bidId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Error while cancelling bid.');
+      } else {
+        return data;
+      }
+    } catch (error) {
+      console.error('Error cancelling bid:', error);
       throw error;
     }
   }

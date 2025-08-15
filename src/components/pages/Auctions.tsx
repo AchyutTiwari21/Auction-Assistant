@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Table,
   TableBody,
@@ -15,23 +18,63 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
-import { Eye, Clock, Users } from 'lucide-react';
+import { Eye, Clock, Users, DollarSign, AlertCircle, CheckCircle, X } from 'lucide-react';
 import type { Auction } from '@/types';
 import { useSelector, useDispatch } from 'react-redux';
 import type { RootState } from '@/app/store';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import service from '@/services/configuration';
+import bidService from '@/services/bidService';
 import { setAuctions } from '@/app/features';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+
+// Bid form schema
+const bidSchema = z.object({
+  amount: z.number().min(1, 'Bid amount must be at least $1'),
+});
+
+type BidForm = z.infer<typeof bidSchema>;
 
 export function Auctions() {
   const [selectedAuction, setSelectedAuction] = useState<Auction | null>(null);
+  const [showBidDialog, setShowBidDialog] = useState(false);
+  const [biddingAuction, setBiddingAuction] = useState<Auction | null>(null);
+  const [bidMessage, setBidMessage] = useState('');
+  const [isBidding, setIsBidding] = useState(false);
+  const [isCancellingBid, setIsCancellingBid] = useState<string | null>(null);
+  const [bidToCancel, setBidToCancel] = useState<string | null>(null);
 
   const auctions: Auction[] | null = useSelector((state: RootState) => state.auctions.auctions);
+  const userData: any = useSelector((state: RootState) => state.auth.userData);
 
   const dispatch = useDispatch();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors },
+  } = useForm<BidForm>({
+    resolver: zodResolver(bidSchema),
+  });
 
   useEffect(() => {
     NProgress.configure({showSpinner: false});
@@ -54,6 +97,115 @@ export function Auctions() {
 
     fetchAuctionData();
   }, [dispatch]);
+
+  const handleBidClick = (auction: Auction) => {
+    setBiddingAuction(auction);
+    setShowBidDialog(true);
+    // Set minimum bid amount (current bid + 1 or $1 if no current bid)
+    const minBid = auction.currentBid ? auction.currentBid.amount + 1 : 1;
+    setValue('amount', minBid);
+    setBidMessage('');
+  };
+
+  const handleBidSubmit = async (data: BidForm) => {
+    if (!biddingAuction) return;
+
+    setIsBidding(true);
+    setBidMessage('');
+
+    // Validate bid amount
+    const currentBidAmount = biddingAuction.currentBid?.amount || 0;
+    if (data.amount <= currentBidAmount) {
+      setBidMessage('Bid amount must be higher than the current bid.');
+      setIsBidding(false);
+      return;
+    }
+
+    NProgress.start();
+    try {
+      await bidService.placeBid(biddingAuction.id, data.amount);
+      
+      // Refresh auction data
+      const auctionsResponse = await service.getAuctions();
+      if (auctionsResponse) {
+        dispatch(setAuctions(auctionsResponse));
+      }
+      
+      setShowBidDialog(false);
+      setBiddingAuction(null);
+      reset();
+      setBidMessage('Bid placed successfully!');
+      setTimeout(() => setBidMessage(''), 3000);
+    } catch (error: any) {
+      setBidMessage(error.message || 'Failed to place bid. Please try again.');
+    } finally {
+      setIsBidding(false);
+      NProgress.done();
+    }
+  };
+
+  const handleBidCancel = () => {
+    setShowBidDialog(false);
+    setBiddingAuction(null);
+    reset();
+    setBidMessage('');
+  };
+
+  const handleCancelBidClick = (bidId: string) => {
+    setBidToCancel(bidId);
+  };
+
+  const handleCancelBidConfirm = async () => {
+    if (!bidToCancel) return;
+    
+    setIsCancellingBid(bidToCancel);
+    setBidMessage('');
+
+    NProgress.start();
+    try {
+      await bidService.cancelBid(bidToCancel);
+      
+      // Refresh auction data
+      const auctionsResponse = await service.getAuctions();
+      if (auctionsResponse) {
+        dispatch(setAuctions(auctionsResponse));
+      }
+      
+      setBidMessage('Bid cancelled successfully!');
+      setTimeout(() => setBidMessage(''), 3000);
+    } catch (error: any) {
+      setBidMessage(error.message || 'Failed to cancel bid. Please try again.');
+    } finally {
+      setIsCancellingBid(null);
+      setBidToCancel(null);
+      NProgress.done();
+    }
+  };
+
+  const handleCancelBidCancel = () => {
+    setBidToCancel(null);
+  };
+
+  const isAuctionActive = (auction: Auction) => {
+    const now = new Date();
+    const startTime = new Date(auction.startTime);
+    const endTime = new Date(auction.endTime);
+    return now >= startTime && now <= endTime;
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
+  const canCancelBid = (bid: { user: { id: string } }) => {
+    // Check if the bid belongs to the current user and the auction is still active
+    const isUserBid = bid.user?.id === userData?.id;
+    const isAuctionStillActive = selectedAuction ? isAuctionActive(selectedAuction) : false;
+    return isUserBid && isAuctionStillActive && userData !== null;
+  };
   
   function getStatusBadge(auction: Auction) {
     const now = new Date();
@@ -120,14 +272,27 @@ export function Auctions() {
                     {auction?.bids?.length ?? 0}
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSelectedAuction(auction)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedAuction(auction)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </Button>
+                      {isAuctionActive(auction) && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleBidClick(auction)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <DollarSign className="h-4 w-4 mr-2" />
+                          Bid
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -186,6 +351,22 @@ export function Auctions() {
                       {selectedAuction?.product?.description || 'No description available'}
                     </p>
                   </div>
+
+                  {isAuctionActive(selectedAuction) && (
+                    <div className="pt-4">
+                      <Button
+                        onClick={() => handleBidClick(selectedAuction)}
+                        className="w-full bg-green-600 hover:bg-green-700"
+                        size="lg"
+                      >
+                        <DollarSign className="h-5 w-5 mr-2" />
+                        Place Bid
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        Current bid: {formatCurrency(selectedAuction.currentBid?.amount || 0)}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Bidding History */}
@@ -207,8 +388,43 @@ export function Auctions() {
                             </p>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold">${bid?.amount.toLocaleString()}</p>
+                        <div className="flex items-center space-x-2">
+                          <div className="text-right">
+                            <p className="text-sm font-bold">${bid?.amount.toLocaleString()}</p>
+                          </div>
+                          {canCancelBid(bid) && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isCancellingBid === bid.id}
+                                  className="text-red-600 border-red-200 hover:bg-red-50"
+                                >
+                                  {isCancellingBid === bid.id ? (
+                                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                  ) : (
+                                    <X className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Cancel Bid</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to cancel your bid of ${bid.amount.toLocaleString()}? 
+                                    This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel onClick={handleCancelBidCancel}>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleCancelBidConfirm} className="bg-red-600 hover:bg-red-700">
+                                    Yes, Cancel Bid
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -223,6 +439,78 @@ export function Auctions() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Bid Dialog */}
+      <Dialog open={showBidDialog} onOpenChange={setShowBidDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Place Your Bid</DialogTitle>
+            <DialogDescription>
+              Enter your bid amount for {biddingAuction?.product?.name}
+            </DialogDescription>
+          </DialogHeader>
+
+          {bidMessage && (
+            <Alert className={bidMessage.includes('successfully') ? 'border-green-200 bg-green-50 text-green-800' : 'border-red-200 bg-red-50 text-red-800'}>
+              {bidMessage.includes('successfully') ? (
+                <CheckCircle className="h-4 w-4" />
+              ) : (
+                <AlertCircle className="h-4 w-4" />
+              )}
+              <AlertDescription>{bidMessage}</AlertDescription>
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit(handleBidSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="amount">Bid Amount ($)</Label>
+              <Input
+                id="amount"
+                type="number"
+                step="0.01"
+                min={biddingAuction?.currentBid ? biddingAuction.currentBid.amount + 1 : 1}
+                placeholder="Enter bid amount"
+                {...register('amount', { valueAsNumber: true })}
+                className={errors.amount ? 'border-destructive' : ''}
+              />
+              {errors.amount && (
+                <p className="text-sm text-destructive">{errors.amount.message}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Minimum bid: {formatCurrency(biddingAuction?.currentBid ? biddingAuction.currentBid.amount + 1 : 1)}
+              </p>
+            </div>
+
+            <div className="flex space-x-2 pt-4">
+              <Button 
+                type="submit" 
+                disabled={isBidding}
+                className="flex-1 bg-green-600 hover:bg-green-700"
+              >
+                {isBidding ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Placing Bid...
+                  </>
+                ) : (
+                  <>
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Place Bid
+                  </>
+                )}
+              </Button>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleBidCancel}
+                disabled={isBidding}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
