@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+// import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,8 +28,6 @@ import {
   Camera,
   AlertCircle,
   Trash2,
-  CreditCard,
-  Plus,
   Clock,
   DollarSign,
   Award,
@@ -91,13 +89,13 @@ interface UserBid {
   isWinning: boolean
 }
 
-interface PaymentMethod {
-  id: string;
-  cardNumber: string;
-  expiryDate: string;
-  cardholderName: string;
-  isDefault: boolean;
-}
+// interface PaymentMethod {
+//   id: string;
+//   cardNumber: string;
+//   expiryDate: string;
+//   cardholderName: string;
+//   isDefault: boolean;
+// }
 
 export function UserProfile() {
   const formData = new FormData();
@@ -114,10 +112,10 @@ export function UserProfile() {
 
   // Bid history and payment states
   const [userBids, setUserBids] = useState<UserBid[]>([]);
-  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  // const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [isLoadingBids, setIsLoadingBids] = useState(false);
-  const [isLoadingPayments, setIsLoadingPayments] = useState(false);
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  // const [isLoadingPayments, setIsLoadingPayments] = useState(false);
+  // const [showPaymentDialog, setShowPaymentDialog] = useState(false);
   const [isCancellingBid, setIsCancellingBid] = useState<string | null>(null);
   const [bidToCancel, setBidToCancel] = useState<string | null>(null);
 
@@ -138,14 +136,14 @@ export function UserProfile() {
     },
   });
 
-  const {
-    register: registerPayment,
-    handleSubmit: handleSubmitPayment,
-    reset: resetPayment,
-    formState: { errors: paymentErrors, isDirty: isPaymentDirty },
-  } = useForm<PaymentForm>({
-    resolver: zodResolver(paymentSchema),
-  });
+  // const {
+  //   register: registerPayment,
+  //   handleSubmit: handleSubmitPayment,
+  //   reset: resetPayment,
+  //   formState: { errors: paymentErrors, isDirty: isPaymentDirty },
+  // } = useForm<PaymentForm>({
+  //   resolver: zodResolver(paymentSchema),
+  // });
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -216,7 +214,7 @@ export function UserProfile() {
   useEffect(() => {
     if (user.id) {
       fetchUserBids();
-      fetchPaymentMethods();
+      // fetchPaymentMethods();
     }
   }, [user.id]);
 
@@ -234,30 +232,30 @@ export function UserProfile() {
 
 
 
-  const fetchPaymentMethods = async () => {
-    setIsLoadingPayments(true);
-    try {
-      const payments = await bidService.getPaymentMethods(user.id);
-      setPaymentMethods(payments);
-    } catch (error) {
-      console.error('Error fetching payment methods:', error);
-    } finally {
-      setIsLoadingPayments(false);
-    }
-  };
+  // const fetchPaymentMethods = async () => {
+  //   setIsLoadingPayments(true);
+  //   try {
+  //     const payments = await bidService.getPaymentMethods(user.id);
+  //     setPaymentMethods(payments);
+  //   } catch (error) {
+  //     console.error('Error fetching payment methods:', error);
+  //   } finally {
+  //     setIsLoadingPayments(false);
+  //   }
+  // };
 
-  const handleAddPaymentMethod = async (data: PaymentForm) => {
-    try {
-      await bidService.addPaymentMethod(user.id, data);
-      setShowPaymentDialog(false);
-      resetPayment();
-      fetchPaymentMethods(); // Refresh payment methods
-      setSaveMessage('Payment method added successfully!');
-      setTimeout(() => setSaveMessage(''), 3000);
-    } catch (error: any) {
-      setSaveMessage('Failed to add payment method. Please try again.');
-    }
-  };
+  // const handleAddPaymentMethod = async (data: PaymentForm) => {
+  //   try {
+  //     await bidService.addPaymentMethod(user.id, data);
+  //     setShowPaymentDialog(false);
+  //     resetPayment();
+  //     // fetchPaymentMethods(); // Refresh payment methods
+  //     setSaveMessage('Payment method added successfully!');
+  //     setTimeout(() => setSaveMessage(''), 3000);
+  //   } catch (error: any) {
+  //     setSaveMessage('Failed to add payment method. Please try again.');
+  //   }
+  // };
 
   // const handleCancelBidClick = (bidId: string) => {
   //   setBidToCancel(bidId);
@@ -324,9 +322,9 @@ export function UserProfile() {
     });
   };
 
-  const maskCardNumber = (cardNumber: string) => {
-    return `**** **** **** ${cardNumber.slice(-4)}`;
-  };
+  // const maskCardNumber = (cardNumber: string) => {
+  //   return `**** **** **** ${cardNumber.slice(-4)}`;
+  // };
 
   return (
     <div className="space-y-6">
@@ -672,7 +670,7 @@ export function UserProfile() {
       </Card>
 
       {/* Payment Methods Section */}
-      <Card>
+      {/* <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
@@ -813,7 +811,7 @@ export function UserProfile() {
             </div>
           )}
         </CardContent>
-      </Card>
+      </Card> */}
 
       <div className='flex justify-center items-start md:hidden'>
         <Card>
