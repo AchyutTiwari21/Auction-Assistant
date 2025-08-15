@@ -65,7 +65,7 @@ export function Sidebar({ className }: SidebarProps) {
       >
         <div className="flex h-full flex-col justify-between">
           {/* Logo */}
-          <div className={`flex ${currentPathname === '/profile' ? "h-[75px]": "h-20"} items-center justify-center border-b border-border px-6`}>
+          <div className={`flex ${currentPathname === '/profile' ? "h-[78px]": "h-20"} items-center justify-center border-b border-border px-6`}>
             <div className="flex items-center space-x-2">
               <Gavel className="h-8 w-8 text-primary" />
               <span className="text-xl font-bold">AuctionHub</span>
