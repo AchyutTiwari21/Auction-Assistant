@@ -120,7 +120,7 @@ export class BidService {
 
   async cancelBid(bidId: string) {
     try {
-      const response = await fetch(`${config.PRODUCTION_API_URL}/bids/${bidId}`, {
+      const response = await fetch(`${config.PRODUCTION_API_URL}/auctions/cancelBid/${bidId}`, {
         method: 'DELETE',
         credentials: 'include'
       });

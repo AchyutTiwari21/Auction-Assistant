@@ -59,8 +59,7 @@ export function Auctions() {
   const [bidMessage, setBidMessage] = useState('');
   const [isBidding, setIsBidding] = useState(false);
   const [isCancellingBid, setIsCancellingBid] = useState<string | null>(null);
-  const [bidToCancel, setBidToCancel] = useState<string | null>(null);
-
+  
   const auctions: Auction[] | null = useSelector((state: RootState) => state.auctions.auctions);
   const userData: any = useSelector((state: RootState) => state.auth.userData);
 
@@ -151,19 +150,13 @@ export function Auctions() {
     setBidMessage('');
   };
 
-  // const handleCancelBidClick = (bidId: string) => {
-  //   setBidToCancel(bidId);
-  // };
-
-  const handleCancelBidConfirm = async () => {
-    if (!bidToCancel) return;
-    
-    setIsCancellingBid(bidToCancel);
+  const handleCancelBidConfirm = async (bidId: string) => {
+    setIsCancellingBid(bidId);
     setBidMessage('');
 
     NProgress.start();
     try {
-      await bidService.cancelBid(bidToCancel);
+      await bidService.cancelBid(bidId);
       
       // Refresh auction data
       const auctionsResponse = await service.getAuctions();
@@ -177,13 +170,8 @@ export function Auctions() {
       setBidMessage(error.message || 'Failed to cancel bid. Please try again.');
     } finally {
       setIsCancellingBid(null);
-      setBidToCancel(null);
       NProgress.done();
     }
-  };
-
-  const handleCancelBidCancel = () => {
-    setBidToCancel(null);
   };
 
   const isAuctionActive = (auction: Auction) => {
@@ -417,8 +405,8 @@ export function Auctions() {
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel onClick={handleCancelBidCancel}>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleCancelBidConfirm} className="bg-red-600 hover:bg-red-700">
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={() => handleCancelBidConfirm(bid.id)} className="bg-red-600 hover:bg-red-700">
                                     Yes, Cancel Bid
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
