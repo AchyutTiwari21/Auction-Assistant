@@ -51,15 +51,15 @@ const profileSchema = z.object({
   username: z.string().min(5, 'Username must be 5 characters.')
 });
 
-const paymentSchema = z.object({
-  cardNumber: z.string().min(16, 'Card number must be at least 16 digits'),
-  expiryDate: z.string().min(1, 'Expiry date is required'),
-  cvv: z.string().min(3, 'CVV must be at least 3 digits'),
-  cardholderName: z.string().min(2, 'Cardholder name must be at least 2 characters')
-});
+// const paymentSchema = z.object({
+//   cardNumber: z.string().min(16, 'Card number must be at least 16 digits'),
+//   expiryDate: z.string().min(1, 'Expiry date is required'),
+//   cvv: z.string().min(3, 'CVV must be at least 3 digits'),
+//   cardholderName: z.string().min(2, 'Cardholder name must be at least 2 characters')
+// });
 
 type ProfileForm = z.infer<typeof profileSchema>;
-type PaymentForm = z.infer<typeof paymentSchema>;
+// type PaymentForm = z.infer<typeof paymentSchema>;
 
 interface UserData {
   id: string;
