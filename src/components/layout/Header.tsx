@@ -62,7 +62,7 @@ export function Header() {
   };
 
   return (
-    <header className="top-0 z-30 flex h-[67px] w-full items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
+    <header className="top-0 z-30 flex h-20 w-full items-center justify-between border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 md:px-6">
       <div>
         <h1 className="text-lg font-semibold">Auction Dashboard</h1>
       </div>

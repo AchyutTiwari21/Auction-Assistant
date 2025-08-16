@@ -164,14 +164,14 @@ export function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-border">
-        <div className="mx-auto max-w-7xl px-6 py-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Gavel className="h-6 w-6 text-primary" />
               <span className="text-lg font-bold">AuctionHub</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              © 2025 AuctionHub. All rights reserved.
+              © 2025 AuctionHub. <span className='hidden md:inline'>All rights reserved.</span>
             </p>
           </div>
         </div>

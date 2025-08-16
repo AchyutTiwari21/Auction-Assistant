@@ -33,14 +33,12 @@ export function Sidebar({ className }: SidebarProps) {
 
   const user = useSelector((state: any) => state.auth.userData);
 
-  const currentPathname = location.pathname;
-
   return (
     <>
       {/* Mobile menu button */}
       <Button
         variant="ghost"
-        className="fixed top-4 right-4 z-50 md:hidden h-8 w-8 p-0"
+        className="fixed top-6 right-2 z-50 md:hidden h-8 flex items-center justify-center w-8 p-0"
         onClick={() => setIsMobileOpen(!isMobileOpen)}
       >
         {isMobileOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -58,21 +56,22 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          'fixed left-0 top-0 z-40 h-full md:h-auto w-64 transform bg-card border-r border-border transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col',
+          'fixed left-0 top-0 z-40 min-h-screen w-64 transform bg-card border-border transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:flex md:flex-col',
           isMobileOpen ? 'translate-x-0' : '-translate-x-full',
           className
-        )}
+        )}min-h-screen
       >
-        <div className="flex h-full flex-col justify-between">
+        <div className="min-h-screen">
           {/* Logo */}
-          <div className={`flex ${currentPathname === '/profile' ? "h-[78px]": "h-20"} items-center justify-center border-b border-border px-6`}>
+          <div className={`flex h-20 items-center sticky justify-center border-b border-r border-border px-6`}>
             <div className="flex items-center space-x-2">
               <Gavel className="h-8 w-8 text-primary" />
               <span className="text-xl font-bold">AuctionHub</span>
             </div>
           </div>
 
-         <div className='h-full p-2 flex flex-col justify-between'>
+         <div className='h-full min-h-screen flex flex-col justify-between border-r'>
+         <div className='h-full p-2 flex flex-col'>
           {/* Navigation */}
           <div>
           <nav className="flex-1 space-y-1 p-4">
@@ -127,6 +126,7 @@ export function Sidebar({ className }: SidebarProps) {
             <div className="text-xs text-muted-foreground">
               © 2025 AuctionHub
             </div>
+          </div>
           </div>
         </div>
       </div>
