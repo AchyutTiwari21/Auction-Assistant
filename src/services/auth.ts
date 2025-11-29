@@ -77,8 +77,8 @@ export class AuthService {
                 return data.data.user;
             }   
 
-        } catch(error) {
-            console.log('Error while logging in.');
+        } catch(error: any) {
+            console.log('Error while logging in.', error?.message);
             throw error;  
         }
     }
